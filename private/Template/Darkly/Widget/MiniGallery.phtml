@@ -1,0 +1,71 @@
+<?php
+
+function MiniGallery($data)
+{
+  $title = (is_array($data) && array_key_exists("title", $data) && !empty($data["title"])) ? $data["title"] : NULL;
+  $image = (is_array($data) && array_key_exists("image", $data)) ? $data["image"] : [];
+?>
+
+  <div class="row mb-3">
+    <div class="col-12">
+      <div class="card bg-dark">
+        <?php if ($title !== NULL)
+        { ?>
+          <div class="card-header border-bottom">
+            <h4 class="text-center text-white"><?= $title; ?></h4>
+          </div>
+        <?php } ?>
+        <div class="card-body px-2">
+          <div class="row mx-1">
+
+            <!---------------------------------------------------------------------------->
+            <?php
+            $counter = 0;
+            foreach ($image as $key => $block)
+            {
+              $block["size"] = str_replace("1x", "", $block["size"]);
+              $counter = $block["size"] + $counter;
+            ?>
+              <div class="col-<?= $block["size"] * 4; ?> p-1">
+                <div class="card bg-secondary">
+                  <a class="ratio banner-<?= $block["size"]; ?>" href="<?= $block["link"]; ?>" target="_blank">
+                    <img class="rounded card-img-top ratio banner-<?= $block["size"]; ?>" src="<?= $block["image"]; ?>" title="<?= $block["name"]; ?>" alt="<?= $block["name"]; ?>" />
+                  </a>
+                </div>
+              </div>
+              <?php
+              if ($key == count($image) - 2 && $counter % 3 == 0)
+              {
+              ?>
+                <div class="col-4 p-1">
+                  <div class="card bg-dark border-0">
+                    <div class="ratio banner-1">
+                      <div class="rounded card-img-top"></div>
+                    </div>
+                  </div>
+                </div>
+              <?php
+              }
+              if ($key == count($image) - 1 && $counter % 3 != 0)
+              {
+              ?>
+                <div class="col-4 p-1">
+                  <div class="card bg-dark border-0">
+                    <div class="ratio banner-1">
+                      <div class="rounded card-img-top"></div>
+                    </div>
+                  </div>
+                </div>
+            <?php
+              }
+            }
+            ?>
+            <!---------------------------------------------------------------------------->
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+<?php
+}

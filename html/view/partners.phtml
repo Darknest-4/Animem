@@ -1,0 +1,27 @@
+
+      <!------------------------------------------------------------->
+      <div class="rapidwp-side-widget widget rapidwp-box widget_text">
+        <div class="rapidwp-box-inside">
+          <h2 class="rapidwp-widget-title">
+            <span>Partnereink:</span>
+          </h2>
+          <div class="textwidget">
+            <p style="vertical-align: top; text-align: center;">
+              <!---------------------------------------------------------------------------->
+              <?php
+              $partner = json_decode(file_get_contents("Config/banner/partner.json"), true);
+              foreach ($partner as $block)
+              {
+              ?>
+                <a href="<?= $block["link"]; ?>" target="_blank">
+                  <img class="banner-<?= $block["size"]; ?>-<?= $block["type"]; ?>" title="<?= $block["name"]; ?>" alt="<?= $block["name"]; ?>" src="https://animem.org/Assets/uploads/banner/partner/<?= $block["image"]; ?>">
+                </a>
+              <?php
+              }
+              ?>
+              <!---------------------------------------------------------------------------->
+            </p>
+          </div>
+        </div>
+      </div>
+      <!------------------------------------------------------------->

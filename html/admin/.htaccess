@@ -1,0 +1,42 @@
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php/$1 [L]
+
+
+#<Files episode.php>
+#    AuthType Basic
+#    AuthName "Authentication Required"
+#    AuthUserFile /var/www/html/animem.org/html/admin/htpasswd/episode.htpasswd
+#    Require valid-user
+#</Files>
+#<Files datasheet.php>
+#    AuthType Basic
+#    AuthName "Authentication Required"
+#    AuthUserFile /var/www/html/animem.org/html/admin/htpasswd/episode.htpasswd
+#    Require valid-user
+#</Files>
+#<Files DSGenerator.php>
+#    AuthType Basic
+#    AuthName "Authentication Required"
+#    AuthUserFile /var/www/html/animem.org/html/admin/htpasswd/episode.htpasswd
+#    Require valid-user
+#</Files>
+#<Files uploaders.php>
+#    AuthType Basic
+#    AuthName "Authentication Required"
+#    AuthUserFile /var/www/html/animem.org/html/admin/htpasswd/uploaders.htpasswd
+#    Require valid-user
+#</Files>
+#<Files blog.php>
+#    AuthType Basic
+#    AuthName "Authentication Required"
+#    AuthUserFile /var/www/html/animem.org/html/admin/htpasswd/blog.htpasswd
+#    Require valid-user
+#</Files>
+#<Files piciadminnemelbaszni.php>
+#    AuthType Basic
+#    AuthName "Authentication Required"
+#    AuthUserFile /var/www/html/animem.org/html/admin/htpasswd/piciadminnemelbaszni.htpasswd
+#    Require valid-user
+#</Files>

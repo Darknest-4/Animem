@@ -1,0 +1,88 @@
+<div class="rapidwp-box-inside" style="margin-top:10px;">
+  <header class="entry-header">
+    <div>
+      <div class="entry-header-inside">
+        <h1 class="entry-title">
+          Szezonális
+        </h1>
+      </div>
+    </div>
+  </header>
+  <div class="entry-content clearfix">
+
+    <table class="table table-light table-bordered table-sm text-center">
+      <thead>
+        <tr class="">
+          <?php
+          if (is_array($days))
+            foreach ($days as $key => $value)
+            {
+          ?>
+            <th scope="col">
+              <a class="<?= ($getday == $key) ? "ckhaki" : ""; ?>" href="https://animem.org/seasonal/<?= str_replace("-", "N", $key); ?>">
+                [<?= $value["name"]; ?>]
+              </a>
+            </th>
+
+          <?php
+            }
+          ?>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+    <table class="table table-light table-bordered table-sm text-center">
+      <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th colspan="3" scope="col">Cim</th>
+          <th scope="col">Feltőltve</th>
+          <th scope="col">Feltöltő</th>
+          <th scope="col">Megtekintés</th>
+        </tr>
+      </thead>
+      <tbody>
+
+        <?php
+        if (is_array($day) && !empty($day))
+        {
+          foreach ($day as $key => $value)
+          {
+        ?>
+            <tr>
+              <td scope="row"><?= $key + 1; ?>.</td>
+              <td colspan="3" class="text-left text-truncate<?= $value["viewed"]; ?>" style="max-width: 450px;"><?= str_replace("-", " ", $value["title"]); ?></td>
+              <td>
+                <cite class="">
+                  <?= $value["create_date"]; ?>
+                </cite>
+              </td>
+              <td>
+                <cite><a class="<?= $value["color"]; ?>" href="https://animem.org/fansub/<?= $value["uploaders_id"]; ?>" target="_blank"><?= $value["fname"]; ?></a></cite>
+              </td>
+              <td><a class="<?= $value["color"]; ?>" href="<?= $value["my_link"]; ?>" target="_blank">Link</a></td>
+            </tr>
+          <?php
+          }
+        }
+        else
+        {
+          ?>
+          <tr>
+            <td colspan="7" style="vertical-align: top; text-align: center;">
+              <span>Nincs megjeleníthető tartalom! Válasz másik napot.</span>
+            </td>
+          </tr>
+        <?php
+        } ?>
+      </tbody>
+    </table>
+
+
+
+
+  </div>
+  <footer class="entry-footer"></footer>
+</div>
+

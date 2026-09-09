@@ -1,0 +1,42 @@
+<div class="card bg-dark">
+  <div class="card-header border-bottom">
+    <h4 class="text-center text-white"><?= str_replace("-", " ", $link["title"]); ?></h4>
+  </div>
+  <div class="card-body">
+    <div class="row">
+      <div class="col-12">
+        <!---------------------------------------------------------------------------->
+        <iframe id="videoIframe" src="https://embed.animem.org/Video/Inda/On/<?= $link["link"]; ?>" frameborder="0" allowfullscreen="" scrolling="no" style="width: 100%;min-height: 486px;display:block;"></iframe>
+        <iframe id="loadingIframe" src="https://animem.org/loader.html" frameborder="0" allowfullscreen="" scrolling="no" style="width: 100%;min-height: 486px;display:none;"></iframe>
+        <!---------------------------------------------------------------------------->
+      </div>
+    </div>
+  </div>
+  <div class="card-footer">
+    <div class="row">
+      <div class="col-lg-2 col-md-6 col-sm-6">
+        <label class="d-grid gap-2">
+          <input class="switch-input" type="checkbox" id="SwitchPlyr">
+          <span class="btn btn-success border border-dark" id="SwitchPlyrButton" onclick="SwitchPlyr();">Plyr Be</span>
+        </label>
+      </div>
+      <div class="col-lg-3 col-md-6 col-sm-6">
+        <label class="d-grid gap-2">
+          <span class="btn btn-info border border-dark" onclick="CopyIframe();">Embed másolása</span>
+        </label>
+      </div>
+      <div class="col-lg-3 col-md-6 col-sm-6">
+        <label class="d-grid gap-2">
+          <span class="btn btn-secondary border border-dark"><?= $link["viewed"]; ?> megtekintés</span>
+        </label>
+      </div>
+      <div class="col-lg-4 col-md-6 col-sm-6">
+        <label class="d-grid gap-2">
+          <a class="btn btn-secondary border border-dark" href="https://animem.org/fansub/<?= $link["uploaders_id"]; ?>" target="_blank">Készítette: <?= $link["fname"]; ?></a>
+        </label>
+      </div>
+    </div>
+    <textarea id="copybox" style="display:none;"></textarea>
+  </div>
+</div>
+

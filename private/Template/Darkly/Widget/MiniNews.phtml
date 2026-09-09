@@ -1,0 +1,31 @@
+<?php
+
+function MiniNews($data)
+{
+  $title = (is_array($data) && array_key_exists("title", $data) && !empty($data["title"])) ? $data["title"] : NULL;
+?>
+
+  <div class="row mb-3">
+    <div class="col-12">
+      <div class="card bg-dark">
+        <?php if ($title !== NULL)
+        { ?>
+          <div class="card-header border-bottom">
+            <h4 class="text-center text-white"><?= $title; ?></h4>
+          </div>
+        <?php } ?>
+        <div class="card-body">
+          <iframe id="cboxdiv" src="//animem.org/mininews.php" marginheight="0" marginwidth="0" scrolling="auto" allowtransparency="yes" width="100%" height="380px" frameborder="0"></iframe>
+        </div>
+        <div>
+          <script>
+            setInterval(function() {
+              document.getElementById('cboxdiv').src = '//animem.org/mininews.php';
+            }, 60000);
+          </script>
+        </div>
+      </div>
+    </div>
+  </div>
+<?php
+}

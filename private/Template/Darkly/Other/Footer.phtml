@@ -1,0 +1,29 @@
+
+</div>
+</div>
+<div class="row mb-3">
+  <div class="col-12">
+    <div class="card bg-dark">
+      <div class="card-body px-2 text-center text-white">
+        <div class="row mb-3">
+          <div class="col-12"><i id="demo" style="display:none;"></i>
+            <span><?php
+                  $diff = date_diff(date_create("2009-10-23"), date_create(date("Y-m-d")));
+
+                  echo "Már " . $diff->y . " éve, " . $diff->m . " hónapja és " . $diff->d . " napja csak értetek.";
+
+                  setVisitorsFromDatabase();
+                  ?></span><br />
+            <span>Mai Látogatók: <?= todayUsers(); ?></span><br />
+            <span>Az elmult 30 percben online Látogatók: <?= onlineUsers(); ?></span>
+          </div>
+        </div>
+        <div class="row mb-3">
+          <span>Jellenlegi verzió: <a href="https://animem.org/ChangeLog"><?= VERSION;?></a></span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</div>

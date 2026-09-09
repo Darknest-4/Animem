@@ -1,0 +1,104 @@
+</div>
+</div>
+</div>
+
+<div class="col-md-3 col-sm-12">
+  <div class="row mb-3">
+    <div class="col-12">
+      <div class="card bg-dark">
+        <div class="card-header border-bottom">
+          <h4 class="text-center text-white">Csatlakozz a közösséghez!</h4>
+        </div>
+        <div class="card-body px-2">
+          <div class="row mx-2">
+            <div class="col-4 p-1">
+              <div class="card bg-secondary">
+                <a class="ratio ratio-1x1" href="//animem.org/Discord" target="_blank">
+                  <img class="rounded card-img-top" src="https://animem.org/Assets/uploads/banner/other/Discord.jpg" title="Discord" alt="Discord" />
+                </a>
+              </div>
+            </div>
+            <div class="col-4 p-1">
+              <div class="card bg-secondary">
+                <a class="ratio ratio-1x1" href="https://www.facebook.com/animem.org" target="_blank">
+                  <img class="rounded card-img-top" src="https://animem.org/Assets/uploads/banner/other/Facebook.jpg" title="Facebook" alt="Facebook" />
+                </a>
+              </div>
+            </div>
+            <div class="col-4 p-1">
+              <div class="card bg-secondary">
+                <a class="ratio ratio-1x1" href="https://www.instagram.com/animem_hun/" target="_blank">
+                  <img class="rounded card-img-top" src="https://animem.org/Assets/uploads/banner/other/Instagram.jpg" title="Instagram" alt="Instagram" />
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+  <div class="row mb-3">
+    <div class="col-12">
+      <div class="card bg-dark">
+        <div class="card-header border-bottom">
+          <h4 class="text-center text-white">Partnereink:</h4>
+        </div>
+        <div class="card-body px-2">
+          <div class="row mx-1">
+
+            <!---------------------------------------------------------------------------->
+            <?php
+            $counter = 0;
+            $partner = json_decode(file_get_contents("../Config/banner/partner.json"), true);
+            foreach ($partner as $key => $block)
+            {
+              $counter = ($block["size"] == "1x1") ? $counter + 1 : $counter + 2;
+            ?>
+              <div class="col-<?= (($block["size"] == "1x1") ? "4" : "8"); ?> p-1">
+                <div class="card bg-secondary">
+                  <a class="<?= (($block["size"] == "1x1") ? "ratio ratio-1x1" : ""); ?>" href="<?= $block["link"]; ?>" target="_blank">
+                    <img class="rounded card-img-top <?= (($block["size"] == "1x1") ? "" : "ratio ratio-1x2"); ?>" src="https://animem.org/Assets/uploads/banner/partner/<?= $block["image"]; ?>" title="<?= $block["name"]; ?>" alt="<?= $block["name"]; ?>" />
+                  </a>
+                </div>
+              </div>
+              <?php
+              if ($key == count($partner) - 2 && $counter % 3 == 0)
+              {
+              ?>
+                <div class="col-4 p-1">
+                  <div class="card bg-dark border-0">
+                    <div class="ratio ratio-1x1">
+                      <div class="rounded card-img-top"></div>
+                    </div>
+                  </div>
+                </div>
+            <?php
+              }
+            }
+            ?>
+            <!---------------------------------------------------------------------------->
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="row mb-3">
+    <div class="col-12">
+      <div class="card bg-dark">
+        <div class="card-body">
+          <a href="https://www.patreon.com/animem" target="_blank">
+            <img src="https://animem.org/Assets/uploads/fontos_kepek/Patreon.jpg" alt="Patreon" class="card-img-top col-12">
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+</div>
+</div>
+</div>

@@ -1,0 +1,269 @@
+<div class="container-fluid mt-3">
+  <div class="row">
+    <div class="col-12">
+      <a href="https://animem.org/" rel="home">
+        <img src="https://animem.org/Assets/uploads/fontos_kepek/header.jpg" alt="" class="px-3" width="100%" height="250px">
+      </a>
+    </div>
+  </div>
+  <div class="row mb-4">
+    <div class="col-12">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark mx-3 px-3">
+        <a class="navbar-brand" href="https://animem.org/Home">Kezdőlap</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarScroll" aria-controls="navbarScroll" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarScroll">
+          <ul class="navbar-nav me-auto my-2 my-lg-0">
+            <li class="nav-item"><a class="nav-link fs-6" aria-current="page" href="https://www.twitch.tv/valorzoner">Friday-Banzay</a></li>
+            <li class="nav-item"><a class="nav-link fs-6" aria-current="page" href="https://animem.org/Anime/">Animék A-Z</a></li>
+            <li class="nav-item"><a class="nav-link fs-6" aria-current="page" href="https://animem.org/statistic/">Statisztika</a></li>
+            <li class="nav-item"><a class="nav-link fs-6" aria-current="page" href="https://animem.org/Seasonal/">Szezonális</a></li>
+            <li class="nav-item"><a class="nav-link fs-6" aria-current="page" href="https://hdfilmek.net">HD Filmek</a></li>
+          </ul>
+          <form action="/" method="GET" class="d-flex">
+            <input class="form-control me-2" name="s" type="search" placeholder="Search" aria-label="Search">
+            <button class="btn btn-outline-success" type="submit">Search</button>
+          </form>
+        </div>
+      </nav>
+
+
+
+
+
+
+
+    </div>
+  </div>
+  <div class="row mt-4">
+    <div class="col-12">
+      <div class="row mx-3">
+        <div class="col-md-3 col-sm-12">
+          <?php
+          if (isset($episodeslist))
+          {
+          ?>
+            <div class="row mb-3">
+              <div class="col-12">
+                <div class="card bg-dark" id="defPlyrIsOn" style="display:block;">
+                  <div class="card-header border-bottom">
+                    <div class="row">
+                      <div class="col-12">
+                        <label class="d-grid gap-2">
+                          <a class="btn btn-secondary border border-dark" href="https://animem.org/DataSheet/<?= $select["id"]; ?>">Vissza az adatlapra.</a>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="card-body">
+                    <div class="row">
+                      <div class="col-12">
+                        <div class="list-group scroll" style="max-height:500px;">
+                          <!---------------------------------------------------------------------------->
+                          <?php
+                          foreach ($episodeslist as $key => $block)
+                          {
+                            switch ($episodeslist[0]["link_type"]) {
+                              case 10:
+                                ?>
+                                <button class="list-group-item list-group-item-action opacity-50 <?= (($key == 0) ? "active" : ""); ?>" onclick="removeActiveClass(this); loadingIframe(); document.getElementById('videoIframe').src='https://animem.org/redirect.html'">
+                                  <?= $block["title"]; ?>
+                                  <a class="btn btn-secondary btn-sm border border-dark float-end" href="<?= $block["link"]; ?>" target="_blank"><i class="fas fa-external-link-alt"></i>
+                                  </a>
+                                </button>
+                                <?php
+                                break;
+                              case 12:
+                                ?>
+                                <button class="list-group-item list-group-item-action opacity-50 <?= (($key == 0) ? "active" : ""); ?>" onclick="removeActiveClass(this); loadingIframe(); document.getElementById('videoIframe').src='https://animem.org/redirect2.html'">
+                                  <?= $block["title"]; ?>
+                                  <a class="btn btn-secondary btn-sm border border-dark float-end" href="<?= $block["link"]; ?>" target="_blank"><i class="fas fa-external-link-alt"></i>
+                                  </a>
+                                </button>
+                                <?php
+                                break;
+                              default:
+                                ?>
+                                <button class="list-group-item list-group-item-action opacity-50 <?= (($key == 0) ? "active" : ""); ?>" onclick="removeActiveClass(this);loadingIframe();
+                                  document.getElementById('videoIframe').src='<?= $block["link"]; ?>'"><?= $block["title"]; ?></button>
+                                <?php
+                            }
+                          }
+                          ?>
+                          <!---------------------------------------------------------------------------->
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+
+                  </div>
+                </div>
+                <div class="card bg-dark" id="defPlyrIsOff" style="display:none;">
+                  <div class="card-header border-bottom">
+                    <h4 class="text-center text-white"></h4>
+                  </div>
+                  <div class="card-body">
+                    <div class="row">
+                      <div class="col-12">
+                        <div class="list-group scroll" style="max-height:500px;">
+                          <!---------------------------------------------------------------------------->
+                          <?php
+                          foreach ($episodeslist as $key => $block)
+                          {
+
+                            switch ($episodeslist[0]["link_type"]) {
+                              case 10:
+                                ?>
+                                <button class="list-group-item list-group-item-action opacity-50 <?= (($key == 0) ? "active" : ""); ?>" onclick="removeActiveClass(this); loadingIframe(); document.getElementById('videoIframe').src='https://animem.org/redirect.html'">
+                                  <?= $block["title"]; ?>
+                                  <a class="btn btn-secondary btn-sm border border-dark float-end" href="<?= $block["link"]; ?>" target="_blank"><i class="fas fa-external-link-alt"></i>
+                                  </a>
+                                </button>
+                                <?php
+                                break;
+                              case 12:
+                                ?>
+                                <button class="list-group-item list-group-item-action opacity-50 <?= (($key == 0) ? "active" : ""); ?>" onclick="removeActiveClass(this); loadingIframe(); document.getElementById('videoIframe').src='https://animem.org/redirect2.html'">
+                                  <?= $block["title"]; ?>
+                                  <a class="btn btn-secondary btn-sm border border-dark float-end" href="<?= $block["link"]; ?>" target="_blank"><i class="fas fa-external-link-alt"></i>
+                                  </a>
+                                </button>
+                                <?php
+                                break;
+                              default:
+                                ?>
+                                  <button class="list-group-item list-group-item-action opacity-50 <?= (($key == 0) ? "active" : ""); ?>" onclick="removeActiveClass(this);loadingIframe();
+                                  document.getElementById('videoIframe').src='<?= str_replace("/On/", "/Off/", $block["link"]); ?>'"><?= $block["title"]; ?></button>
+                                <?php
+                            }
+                          }
+                          ?>
+                          <!---------------------------------------------------------------------------->
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+          <?php
+          }
+          else
+          {
+          ?>
+            <div class="row mb-3">
+              <div class="col-12">
+                <div class="card bg-dark">
+                  <div class="card-header border-bottom">
+                    <h4 class="text-center text-white">Megjelenések</h4>
+                  </div>
+                  <div class="card-body">
+                    <iframe id="cboxdiv" src="//animem.org/mininews.php" marginheight="0" marginwidth="0" scrolling="auto" allowtransparency="yes" width="100%" height="380px" frameborder="0"></iframe>
+                  </div>
+                  <div>
+                    <script>
+                      setInterval(function() {
+                        document.getElementById('cboxdiv').src = '//animem.org/mininews.php';
+                      }, 60000);
+                    </script>
+                  </div>
+                </div>
+              </div>
+            </div>
+          <?php
+          }
+          ?>
+          <?php
+
+          if (isset($_COOKIE["userID"]))
+          {
+          ?>
+            <div class="row mb-3">
+              <div class="col-12">
+
+                <div class="card bg-dark" id="defPlyrIsOn" style="display:block;">
+                  <div class="card-header border-bottom">
+                    <div class="row">
+                      <div class="col-12">
+                        <label class="d-grid gap-2">
+                          <a class="btn btn-secondary border border-dark" href="https://animem.org/Profil/<?= $_COOKIE["userID"]; ?>">Profil</a>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="card-body">
+                    <div class="row">
+                      <div class="col-12">
+                        <div class="list-group scroll" style="max-height:500px;">
+                          <!---------------------------------------------------------------------------->
+
+                          <!---------------------------------------------------------------------------->
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          <?php
+          }
+          ?>
+          <div class="row mb-3">
+            <div class="col-12">
+              <div class="card bg-dark">
+                <div class="card-header border-bottom">
+                  <h4 class="text-center text-white">Kiemelt FanSub-ok:</h4>
+                </div>
+                <div class="card-body px-2">
+                  <div class="row mx-1">
+
+                    <!---------------------------------------------------------------------------->
+                    <?php
+                    $counter = 0;
+                    $high = json_decode(file_get_contents("../Config/banner/high.json"), true);
+                    foreach ($high as $key => $block)
+                    {
+                      $counter = ($block["size"] == "1x1") ? $counter + 1 : $counter + 2;
+                    ?>
+                      <div class="col-<?= (($block["size"] == "1x1") ? "4" : "8"); ?> p-1">
+                        <div class="card bg-secondary">
+                          <a class="<?= (($block["size"] == "1x1") ? "ratio ratio-1x1" : ""); ?>" href="<?= $block["link"]; ?>" target="_blank">
+                            <img class="rounded card-img-top <?= (($block["size"] == "1x1") ? "" : "ratio ratio-1x2"); ?>" src="https://animem.org/Assets/uploads/banner/high/<?= $block["image"]; ?>" title="<?= $block["name"]; ?>" alt="<?= $block["name"]; ?>" />
+                          </a>
+                        </div>
+                      </div>
+                      <?php
+                      if ($key == count($high) - 2 && $counter % 3 == 0)
+                      {
+                      ?>
+                        <div class="col-4 p-1">
+                          <div class="card bg-dark border-0">
+                            <div class="ratio ratio-1x1">
+                              <div class="rounded card-img-top"></div>
+                            </div>
+                          </div>
+                        </div>
+                    <?php
+                      }
+                    }
+                    ?>
+                    <!---------------------------------------------------------------------------->
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6 col-sm-12">
+          <div class="row mb-3">
+            <div class="col-12">

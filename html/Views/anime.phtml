@@ -1,0 +1,56 @@
+<div class="card bg-dark">
+  <div class="card-header border-bottom">
+    <h4 class="text-center text-white">Animék</h4>
+  </div>
+  <div class="card-body">
+    <div class="row bg-secondary mb-3">
+      <div class="col-12">
+        <div class="row border-top border-bottom border-start">
+    <?php
+    
+    $counter = 0;
+  foreach ($ch as $key => $value)
+  {
+    $counter++;
+    ?>
+          <a class="col text-center border-end p-1 text-decoration-none text-uppercase" href="https://animem.org/Anime/<?= $key; ?>"><?= $value; ?></a>
+         
+    <?php
+    
+    if ($counter % 12 == 0)
+    {
+    ?>
+    </div>
+        <div class="row border-bottom border-start">
+  <?php
+    }
+  }
+    ?>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+
+      <!---------------------------------------------------------------------------->
+      <?php
+      foreach ($mal as $block)
+      {
+        $block["title"] = htmlspecialchars_decode($block["title"]);
+      ?>
+        <div class="col-lg-3 col-md-6 col-sm-12 mb-4 data-sheet-card <?= $block["datasheet"] ? '' : 'series-card'; ?>">
+          <a class="text-decoration-none" href="https://animem.org/DataSheet/<?= $block["id"]; ?>/<?= $block["title"]; ?>" title="<?= $block["title"]; ?>">
+            <div class="card bg-secondary">
+              <div class="card-header">
+                <h6 class="text-center text-white col-12 text-truncate"><?= $block["title"]; ?></h6>
+              </div>
+              <img class="card-img-top" src="<?= $block["img"]; ?>" alt="<?= $block["title"]; ?>" style="height:300px!important;">
+            </div>
+          </a>
+        </div>
+      <?php
+      }
+      ?>
+      <!---------------------------------------------------------------------------->
+    </div>
+  </div>
+</div>

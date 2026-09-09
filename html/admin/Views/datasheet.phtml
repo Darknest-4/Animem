@@ -1,0 +1,234 @@
+<?php
+if($select["message"] == 1){
+?>
+
+<div class="alert alert-info" role="alert">
+  Ehhez az animéhez jellenleg nincs forditás az oldalunkon. Vagy még nem jött ki az anime, vagy nem készült hozzá felirat.
+</div>
+<?php
+}
+?>
+<div class="card bg-dark">
+  <div class="card-header border-bottom">
+            <?php
+            
+            if (isset($_COOKIE["userID"]))
+            {
+            ?>
+    <div class="row">
+      <div class="col-11">
+    <h4 class="text-center text-white"><?= $select["title"]; ?></h4>
+  </div>
+      <div class="col-1">
+                          <label class="d-grid gap-2">
+                            <a class="btn btn-secondary border border-dark" href="https://animem.org/Profil/<?= $_COOKIE["userID"]; ?>"><i class="fas fa-bell"></i></a>
+                          </label>
+  </div>
+  </div>
+            <?php
+            }else
+            {
+            ?>
+    <h4 class="text-center text-white"><?= $select["title"]; ?></h4>
+            <?php
+            }
+            ?>
+  </div>
+  <div class="card-body">
+    <div class="row">
+      <div class="col-12">
+        <div class="row">
+          <div class="col-4">
+            <div class="row mt-3">
+              <div class="col-1">
+              </div>
+              <div class="col-10">
+                <div class="card">
+                  <img src="<?= $select["anime"]["img"]; ?>" height="320" />
+                </div>
+              </div>
+              <div class="col-1">
+              </div>
+            </div>
+          </div>
+          <div class="col-8">
+            <div class="row">
+              <div class="col-12">
+                <div class="card bg-white text-dark opacity-50" >
+                  <div class="card-body">
+
+                    <div>
+                      <div style="vertical-align:top;text-align:left;border-bottom: dotted 1px white;width:99%;display: inline-block;">
+                        <span style="vertical-align:top;text-align:left;">Angol cím:</span>
+                        <span style="float:right;"><?= htmlspecialchars_decode($select["anime"]["english"]); ?></span>
+                      </div>
+                    </div>
+                    <div>
+                      <div style="vertical-align:top;text-align:left;border-bottom: dotted 1px white;width:99%;display: inline-block;">
+                        <span style="vertical-align:top;text-align:left;">Egyéb cím(ek):</span>
+                        <span style="float:right;"><?= htmlspecialchars_decode($select["anime"]["synonyms"]); ?></span>
+                      </div>
+                    </div>
+                    <div>
+                      <div style="vertical-align:top;text-align:left;border-bottom: dotted 1px white;width:99%;display: inline-block;">
+                        <span style="vertical-align:top;text-align:left;">Japán cím:</span>
+                        <span style="float:right;"><?= htmlspecialchars_decode($select["anime"]["japanese"]); ?></span>
+                      </div>
+                    </div>
+                    <div>
+                      <div style="vertical-align:top;text-align:left;border-bottom: dotted 1px white;width:99%;display: inline-block;">
+                        <span style="vertical-align:top;text-align:left;">Részek összesen:</span>
+                        <span style="float:right;"><?= $select["anime"]["episodes"]; ?> rész</span>
+                      </div>
+                    </div>
+                    <div>
+                      <div style="vertical-align:top;text-align:left;border-bottom: dotted 1px white;width:99%;display: inline-block;">
+                        <span style="vertical-align:top;text-align:left;">MyAnimeList:</span>
+                        <span style="float:right;">[<a href="<?= $select["anime"]["link"]; ?>" target="_blank" class="link-succes">link</a>]</span>
+                      </div>
+                    </div>
+                    <div>
+                      <div style="vertical-align:top;text-align:left;border-bottom: dotted 1px white;width:99%;display: inline-block;">
+                        <span style="vertical-align:top;text-align:left;">Szezon:</span>
+                        <span style="float:right;"><?= $select["anime"]["year"]; ?> - <?= $select["anime"]["season"]; ?></span>
+                      </div>
+                    </div>
+                    <div>
+                      <div style="vertical-align:top;text-align:left;border-bottom: dotted 1px white;width:99%;display: inline-block;">
+                        <span style="vertical-align:top;text-align:left;">Típus:</span>
+                        <span style="float:right;"><?= $select["anime"]["type"]; ?></span>
+                      </div>
+                    </div>
+                    <div>
+                      <div style="vertical-align:top;text-align:left;border-bottom: dotted 1px white;width:99%;display: inline-block;">
+                        <span style="vertical-align:top;text-align:left;">Besorolás:</span>
+                        <span style="float:right;"><?= $select["anime"]["age_rating"]; ?></span>
+                      </div>
+                    </div>
+                    <div>
+                      <div style="vertical-align:top;text-align:left;border-bottom: dotted 1px white;width:99%;display: inline-block;">
+                        <span style="vertical-align:top;text-align:left;">Forrás:</span>
+                        <span style="float:right;"><?= $select["anime"]["source"]; ?></span>
+                      </div>
+                    </div>
+
+
+                    <?php if (isset($select["anime"]["theme"]) && !empty($select["anime"]["theme"]))
+                    { ?>
+                      <div>
+                        <div style="vertical-align:top;text-align:left;border-bottom: dotted 1px white;width:99%;display: inline-block;">
+                          <span style="vertical-align:top;text-align:left;">Téma:</span>
+                          <span style="float:right;">
+                            <?= implode(", ", $select["anime"]["theme"]); ?>
+                          </span>
+                        </div>
+                      </div>
+                    <?php } ?>
+                    <?php if (isset($select["anime"]["genre"]) && !empty($select["anime"]["genre"]))
+                    { ?>
+                      <div>
+                        <div style="vertical-align:top;text-align:left;border-bottom: dotted 1px white;width:99%;display: inline-block;">
+                          <span style="vertical-align:top;text-align:left;">Műfaj:</span>
+                          <span style="float:right;">
+                            <?= implode(", ", $select["anime"]["genre"]); ?>
+                          </span>
+                        </div>
+                      </div>
+                    <?php } ?>
+                    <?php if (isset($select["anime"]["demographic"]) && !empty($select["anime"]["demographic"]))
+                    { ?>
+                      <div>
+                        <div style="vertical-align:top;text-align:left;border-bottom: dotted 1px white;width:99%;display: inline-block;">
+                          <span style="vertical-align:top;text-align:left;">Egyéb Műfaj:</span>
+                          <span style="float:right;">
+                            <?= implode(", ", $select["anime"]["demographic"]); ?>
+                          </span>
+                        </div>
+                      </div>
+                    <?php } ?>
+
+                    <?php if (isset($select["anime"]["Studios"]) && !empty($select["anime"]["Studios"]))
+                    { ?>
+                      <div>
+                        <div style="vertical-align:top;text-align:left;border-bottom: dotted 1px white;width:99%;display: inline-block;">
+                          <span style="vertical-align:top;text-align:left;">Studió:</span>
+                          <span style="float:right;">
+                            <?= implode(", ", $select["anime"]["Studios"]); ?>
+                          </span>
+                        </div>
+                      </div>
+                    <?php } ?>
+                    <?php if (isset($select["anime"]["Licensors"]) && !empty($select["anime"]["Licensors"]))
+                    { ?>
+                      <div>
+                        <div style="vertical-align:top;text-align:left;border-bottom: dotted 1px white;width:99%;display: inline-block;">
+                          <span style="vertical-align:top;text-align:left;">Kiadó:</span>
+                          <span style="float:right;">
+                            <?= implode(", ", $select["anime"]["Licensors"]); ?>
+                          </span>
+                        </div>
+                      </div>
+                    <?php } ?>
+                    <?php if (isset($select["anime"]["Producers"]) && !empty($select["anime"]["Producers"]))
+                    { ?>
+                      <div>
+                        <div style="vertical-align:top;text-align:left;border-bottom: dotted 1px white;width:99%;display: inline-block;">
+                          <span style="vertical-align:top;text-align:left;">Producer:</span>
+                          <span style="float:right;">
+                            <?= implode(", ", $select["anime"]["Producers"]); ?>
+                          </span>
+                        </div>
+                      </div>
+                    <?php } ?>
+                    <div>
+                      <div style="vertical-align:top;text-align:left;width:99%;display: inline-block;">
+                        <span style="vertical-align:top;text-align:left;">Fordította:</span>
+                        <span style="float:right;"><?= $select["uploaders"]; ?></span>
+                      </div>
+                    </div>
+
+
+
+
+
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row mt-3">
+          <div class="col-12">
+            <div class="card bg-secondary">
+              <div class="card-header">
+                <h4>Leírás:</h4>
+              </div>
+              <div class="card-body">
+                <div>
+                  <p><?= ($select["description"] == NULL) ? $select["anime"]["synopsis2"] : $select["description"]; ?></p>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+        <div class="row mt-3">
+          <div class="col-12">
+            <div class="card bg-secondary">
+                  <!---------------------------------------------------------------------------->
+                  <?php
+                  foreach ($select["episodelist"] as $key => $block)
+                  {
+                  ?>
+                   <div class="card-header"><a class="text-dark text-decoration-none" href="https://animem.org/<?= $block["type"]; ?>/<?= $block["id"]; ?>/<?= $block["title"]; ?>"><?= $block["title"]; ?></a></div>
+                  <?php
+                  }
+                  ?>
+                  <!---------------------------------------------------------------------------->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

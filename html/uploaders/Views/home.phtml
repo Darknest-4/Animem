@@ -1,0 +1,82 @@
+
+  <div class="container-fluid">
+    <div class="row m-3">
+      <div class="col-12 ">
+        <div class="card text-center ">
+          <form class="form-horizontal" method="POST" id="form-id">
+            <div class="card-body">
+              <div class="row border-bottom">
+                <div class="col-md-12 ">
+                  <h4 class="card-title">Statisztika</h4>
+                </div>
+              </div>
+              <div class="row border-bottom">
+                <div class="col-md-4 border-end">
+                  <div class="row">
+                    <div class="col-md-6 text-start">
+                      <span>Videók a rendszerben:</span>
+                    </div>
+                    <div class="col-md-6 text-end">
+                      <span><?= $videoInSystem; ?></span>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-4 border-end">
+                  <div class="row">
+                    <div class="col-md-6 text-start">
+                      <span>Felhasznált Videók:</span>
+                    </div>
+                    <div class="col-md-6 text-end">
+                      <span><?= $videoUsed; ?></span>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="row">
+                    <div class="col-md-6 text-start">
+                      <span>Használaton kivüli videók:</span>
+                    </div>
+                    <div class="col-md-6 text-end">
+                      <span><?= $videoNotUsed; ?></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="row border-bottom">
+                <div class="col-md-4 border-end">
+                  <div class="row">
+                    <div class="col-md-6 text-start">
+                      <span>Megnyitott videók:</span>
+                    </div>
+                    <div class="col-md-6 text-end">
+                      <span><?= $videoOpened; ?></span>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-4 border-end">
+                  <div class="row">
+                    <div class="col-md-6 text-start">
+                      <span>Megnézett videók:</span>
+                    </div>
+                    <div class="col-md-6 text-end">
+                      <span><?= $videoViewed; ?></span>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="row">
+                    <div class="col-md-6 text-start">
+                      <span>Félbehagyott videók:</span>
+                    </div>
+                    <div class="col-md-6 text-end">
+                      <span><?= $nonViewedVideo; ?></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+        </div>
+        </form>
+      </div>
+    </div>
+  </div>

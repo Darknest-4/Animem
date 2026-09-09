@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <link rel="stylesheet" href="https://cdn.plyr.io/3.6.3/plyr.css">
+  <script src="https://cdn.plyr.io/3.6.3/plyr.js"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      border: 0;
+      box-sizing: border-box;
+      outline: none;
+    }
+
+    html {
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      background-color: #23272a;
+    }
+
+    <?php
+    $private = (isset($_GET["private"])) ? $_GET["private"] : "";
+    $tesco = (isset($_GET["plyr"])) ? $_GET["plyr"] : "";
+    if (!empty($tesco) && $tesco == "no")
+    {
+    ?>#player {
+      max-height: 486px;
+      width: 100%;
+    }
+
+    <?php }
+    if (!empty($private) && $private == "yes")
+    {
+    ?>.plyr__video-wrapper::before {
+      position: absolute;
+      top: 5px;
+      left: 5px;
+      z-index: 10;
+      content: url(/Assets/uploads/fontos_kepek/Logo-64.svg);
+    }
+
+    /*
+		.plyr__video-wrapper, .plyr__poster {
+			background:url(/Assets/uploads/fontos_kepek/180.jpg) 0.5% 3% no-repeat,linear-gradient(rgba(0,0,0,0),rgba(0,0,0,.5))!important;
+			background-size:100px auto,auto!important
+		 }.video-description {
+			 z-index: -110000;
+		background: transparent;
+		position: absolute;
+		top: -72%;
+		right: 0;
+		bottom: 0;
+		left: -55%;
+		display: -webkit-box;
+		display: -ms-flexbox;
+		display: flex;
+		-webkit-box-align: center;
+		-ms-flex-align: center;
+		align-items: center;
+		-webkit-box-pack: center;
+		-ms-flex-pack: center;
+		justify-content: center;			background:url(/Assets/uploads/fontos_kepek/180.jpg) 0.5% 3% no-repeat,linear-gradient(rgba(0,0,0,0),rgba(0,0,0,.5))!important;
+		background-size:100px auto,auto!important
+		}
+		*/
+    <?php } ?>.video {
+      display: inline-block;
+      float: left;
+      background: #000000b3;
+      padding: 0;
+      text-align: center;
+      width: 100%;
+      height: 486px;
+      position: relative;
+    }
+
+    .plyr {
+      height: 100%;
+      width: 100%;
+    }
+
+    .plyr__video-wrapper {
+      height: 100%;
+    }
+
+    .plyr__video-wrapper iframe {
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+
+<body>
+
+
+<?php if (!empty($player) && $player != "Null")
+  { ?>
+
+  <?php if (!empty($type) && $type == "Inda")
+  { ?>
+    <div class="video">
+      <div class="plyr">
+        <div class="plyr__video-wrapper">
+          <video id="player" playsinline controls class="js-player">
+            <?php if (!empty($link_A))
+            { ?>
+              <source src="<?= $link_A ?>" size="720" type="video/mp4" />
+            <?php } ?>
+            <?php if (!empty($link_B))
+            { ?>
+              <source src="<?= $link_B ?>" size="720" type="video/mp4" />
+            <?php } ?>
+          </video>
+        </div>
+      </div>
+    </div>
+  <?php }
+  elseif (!empty($type) && $type == "EmbedInda")
+  { ?>
+    <div class="video">
+      <div class="plyr">
+        <div class="plyr__video-wrapper">
+          <video id="player" playsinline controls class="js-player">
+            <?php if (!empty($link_A))
+            { ?>
+              <source src="<?= $link_A ?>" size="720" type="video/mp4" />
+            <?php } ?>
+            <?php if (!empty($link_B))
+            { ?>
+              <source src="<?= $link_B ?>" size="720" type="video/mp4" />
+            <?php } ?>
+          </video>
+        </div>
+      </div>
+    </div>
+  <?php }
+  elseif (!empty($type) && $type == "EmbedOta")
+  { ?>
+    <div class="video">
+      <div class="plyr">
+        <div class="plyr__video-wrapper">
+          <video id="player" playsinline controls class="js-player">
+            <?php if (!empty($link_A))
+            { ?>
+              <source src="<?= $link_A ?>" size="720" type="video/mp4" />
+            <?php } ?>
+            <?php if (!empty($link_B))
+            { ?>
+              <source src="<?= $link_B ?>" size="720" type="video/mp4" />
+            <?php } ?>
+          </video>
+        </div>
+      </div>
+    </div>
+  <?php }
+  else require_once("view/error/404v.phtml"); ?>
+
+
+<?php }else{?>
+  <iframe src="<?= $link ?>" style="position: absolute; top: 0; left: 0; bottom: 0; border:0;right: 0; width: 100%; height: 100%;"></iframe>
+
+<?php }?>
+<?php if (!empty($player) && $player == "On")
+  { ?>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // This is the bare minimum JavaScript. You can opt to pass no arguments to setup.
+      const controls = [
+        'play-large', // The large play button in the center
+        'restart', // Restart playback
+        'rewind', // Rewind by the seek time (default 10 seconds)
+        'play', // Play/pause playback
+        'fast-forward', // Fast forward by the seek time (default 10 seconds)
+        'progress', // The progress bar and scrubber for playback and buffering
+        'current-time', // The current time of playback
+        'duration', // The full duration of the media
+        'mute', // Toggle mute
+        'volume', // Volume control
+        'captions', // Toggle captions
+        'settings', // Settings menu
+        'download', // Show a download button with a link to either the current source or a custom URL you specify in your options
+        'fullscreen' // Toggle fullscreen
+      ];
+
+      const player = new Plyr('#player', {
+        controls
+      });
+      // Expose
+      window.player = player;
+      player.currentTime = 5;
+
+
+      // Bind event listener
+      function on(selector, type, callback) {
+        document.querySelector(selector).addEventListener(type, callback, false);
+      }
+
+
+    });
+  </script>
+
+<?php }?>
+
+
+  <script>
+    /*
+    const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay))
+
+    const repeatedGreetings = async () => {
+      // await sleep(1000)
+      await sleep(1000 * 60 * 15)
+      sendlink("<?= $sendlink; ?>");
+    }
+
+    repeatedGreetings();
+
+    function sendlink(str) {
+      var xmlhttp = new XMLHttpRequest();
+      xmlhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+          console.log(this);
+        }
+      }
+      xmlhttp.open("GET", "https://animem.org/counter.php?q=" + str + "&set=happy", true);
+      xmlhttp.send();
+    }
+    */
+  </script>
+</body>
+
+</html>

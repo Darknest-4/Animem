@@ -1,0 +1,47 @@
+
+        <div class="col-md-3 col-sm-12">
+  <?php
+
+  $Widget = [
+    [
+      "Widget" => "MiniGallery",
+      "title" => "Csatlakozz a közösséghez!",
+      "image" => json_decode('[{
+      "name": "Discord",
+      "image": "' . ASSETSURL . 'uploads/banner/other/Discord.jpg",
+      "link": "//animem.org/Discord",
+      "size": "1x1"
+    },
+    {
+      "name": "Facebook",
+      "image": "' . ASSETSURL . 'uploads/banner/other/Facebook.jpg",
+      "link": "//www.facebook.com/animem.org",
+      "size": "1x1"
+    },
+    {
+      "name": "Instagram",
+      "image": "' . ASSETSURL . 'uploads/banner/other/Instagram.jpg",
+      "link": "//www.instagram.com/animem_hun/",
+      "size": "1x1"
+    }]', true)
+    ],
+    [
+      "Widget" => "MiniGallery",
+      "title" => "Kiemelt FanSub-ok:",
+      "image" => getBanner(json_decode(fGetCon(FOLDER_CONFIG . "banner" . DS . "high.json"), true))
+    ],
+    [
+      "Widget" => "MiniGallery",
+      "title" => "",
+      "image" => json_decode('[{
+      "name": "Patreon",
+      "image": "' . ASSETSURL . 'uploads/banner/other/Patreon.jpg",
+      "link": "//patreon.com/animem",
+      "size": "1x3"
+    }]', true)
+    ]
+  ];
+
+  viewBuilderWidget($Widget);
+  ?>
+</div>

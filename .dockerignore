@@ -1,0 +1,28 @@
+.git
+.github
+.env
+.env.*
+!.env.example
+
+# Legacy PHP site: not part of the API image. 92 MB of it is vendored assets and
+# user uploads, which would otherwise land in every build context.
+html/
+private/
+Config/
+
+**/vendor/
+**/node_modules/
+apps/api/storage/logs/*
+apps/api/storage/cache/*
+apps/api/storage/tmp/*
+!apps/api/storage/**/.gitkeep
+
+**/.phpunit.result.cache
+**/.phpunit.cache
+coverage/
+*.log
+*.sql.gz
+.idea/
+.vscode/
+.DS_Store
+docs/

@@ -1,0 +1,38 @@
+{
+	email {$ACME_EMAIL:admin@example.com}
+	servers {
+		# Caddy is the only hop that sees the real client; it rewrites the
+		# forwarding headers nginx and PHP then read. TrustedProxyResolver in the
+		# application trusts only the container network, so a client-supplied
+		# X-Forwarded-For cannot survive this hop.
+		trusted_proxies static private_ranges
+	}
+}
+
+{$DOMAIN:localhost} {
+	encode zstd gzip
+
+	# TLS is terminated here; certificates are obtained and renewed automatically.
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		-Server
+	}
+
+	@blocked {
+		path /.git/* /.env /composer.json /composer.lock
+	}
+	respond @blocked 404
+
+	reverse_proxy nginx:80 {
+		header_up X-Real-IP {remote_host}
+		header_up X-Forwarded-Proto {scheme}
+		health_uri /health
+		health_interval 15s
+		health_timeout 3s
+	}
+
+	log {
+		output stdout
+		format json
+	}
+}

@@ -2,6 +2,18 @@
 
 declare(strict_types=1);
 
+use Yume\Api\Application\Anime\Command\CreateAnimeCommand;
+use Yume\Api\Application\Anime\Command\DeleteAnimeCommand;
+use Yume\Api\Application\Anime\Command\PublishAnimeCommand;
+use Yume\Api\Application\Anime\Command\UpdateAnimeCommand;
+use Yume\Api\Application\Anime\Handler\CreateAnimeHandler;
+use Yume\Api\Application\Anime\Handler\DeleteAnimeHandler;
+use Yume\Api\Application\Anime\Handler\GetAnimeHandler;
+use Yume\Api\Application\Anime\Handler\PublishAnimeHandler;
+use Yume\Api\Application\Anime\Handler\SearchAnimeHandler;
+use Yume\Api\Application\Anime\Handler\UpdateAnimeHandler;
+use Yume\Api\Application\Anime\Query\GetAnimeQuery;
+use Yume\Api\Application\Anime\Query\SearchAnimeQuery;
 use Yume\Api\Application\Auth\Command\ChangePasswordCommand;
 use Yume\Api\Application\Auth\Command\LoginCommand;
 use Yume\Api\Application\Auth\Command\LogoutCommand;
@@ -24,6 +36,20 @@ use Yume\Api\Application\Auth\Handler\RevokeSessionHandler;
 use Yume\Api\Application\Auth\Handler\VerifyEmailHandler;
 use Yume\Api\Application\Auth\Query\GetCurrentUserQuery;
 use Yume\Api\Application\Auth\Query\GetSessionsQuery;
+use Yume\Api\Application\Community\Command\SaveUploaderCommand;
+use Yume\Api\Application\Community\Handler\ListUploadersHandler;
+use Yume\Api\Application\Community\Handler\SaveUploaderHandler;
+use Yume\Api\Application\Community\Query\ListUploadersQuery;
+use Yume\Api\Application\Episode\Command\AddEpisodeReleaseCommand;
+use Yume\Api\Application\Episode\Command\CreateEpisodeCommand;
+use Yume\Api\Application\Episode\Command\DeleteEpisodeCommand;
+use Yume\Api\Application\Episode\Command\PublishEpisodeCommand;
+use Yume\Api\Application\Episode\Handler\AddEpisodeReleaseHandler;
+use Yume\Api\Application\Episode\Handler\CreateEpisodeHandler;
+use Yume\Api\Application\Episode\Handler\DeleteEpisodeHandler;
+use Yume\Api\Application\Episode\Handler\ListEpisodesHandler;
+use Yume\Api\Application\Episode\Handler\PublishEpisodeHandler;
+use Yume\Api\Application\Episode\Query\ListEpisodesQuery;
 use Yume\Api\Application\Feature\Handler\ListFeatureFlagsHandler;
 use Yume\Api\Application\Feature\Query\ListFeatureFlagsQuery;
 use Yume\Api\Application\Auth\Service\TokenIssuer;
@@ -120,12 +146,29 @@ return static function (Container $container, Config $config): void {
         RequestPasswordResetCommand::class => RequestPasswordResetHandler::class,
         ResetPasswordCommand::class => ResetPasswordHandler::class,
         ChangePasswordCommand::class => ChangePasswordHandler::class,
+
+        // Catalogue
+        CreateAnimeCommand::class => CreateAnimeHandler::class,
+        UpdateAnimeCommand::class => UpdateAnimeHandler::class,
+        PublishAnimeCommand::class => PublishAnimeHandler::class,
+        DeleteAnimeCommand::class => DeleteAnimeHandler::class,
+        CreateEpisodeCommand::class => CreateEpisodeHandler::class,
+        AddEpisodeReleaseCommand::class => AddEpisodeReleaseHandler::class,
+        PublishEpisodeCommand::class => PublishEpisodeHandler::class,
+        DeleteEpisodeCommand::class => DeleteEpisodeHandler::class,
+        SaveUploaderCommand::class => SaveUploaderHandler::class,
     ]));
 
     $container->singleton(QueryBusInterface::class, static fn (Container $c): QueryBusInterface => new QueryBus($c, [
         GetCurrentUserQuery::class => GetCurrentUserHandler::class,
         GetSessionsQuery::class => GetSessionsHandler::class,
         ListFeatureFlagsQuery::class => ListFeatureFlagsHandler::class,
+
+        // Catalogue
+        SearchAnimeQuery::class => SearchAnimeHandler::class,
+        GetAnimeQuery::class => GetAnimeHandler::class,
+        ListEpisodesQuery::class => ListEpisodesHandler::class,
+        ListUploadersQuery::class => ListUploadersHandler::class,
     ]));
 
     // ------------------------------------------------------------------ router

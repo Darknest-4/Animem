@@ -47,6 +47,18 @@ final class ErrorHandlerMiddleware implements MiddlewareInterface
                 $e->context(),
                 $this->retryHeaders($e),
             );
+        } catch (\DomainException $e) {
+            // SPL's DomainException: "a value does not adhere to a defined valid
+            // data domain". Handlers raise it for business-rule refusals that do
+            // not warrant their own class (a duplicate MAL id, an episode number
+            // already taken). Its message is written for the caller, so it is
+            // safe to return; anything with sensitive detail gets its own type.
+            $this->logger->info('Domain rule rejected the request.', [
+                'path' => $request->path(),
+                'message' => $e->getMessage(),
+            ]);
+
+            return ProblemDetails::make(422, 'domain.rule_violated', $e->getMessage());
         } catch (\InvalidArgumentException $e) {
             // Value object construction failed: bad input, not a server fault.
             return ProblemDetails::make(422, 'validation.failed', $e->getMessage());

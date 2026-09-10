@@ -91,6 +91,19 @@ and it runs last in the pipeline, immediately before the controller. Controllers
 contain no permission checks — a second check would be duplication that can
 drift out of sync with the route declaration.
 
+There are three access modes, and `->can()` deliberately does **not** imply a
+session. The `guest` role holds a real permission set, so an anonymous visitor
+reaches `->can('anime.view')` and is refused `->can('anime.edit')`. The
+alternative — making every public read `->public()` — would strip the permission
+check from exactly the endpoints that serve the most traffic, and leave the
+catalogue's readability encoded nowhere.
+
+The cost is that the anonymously reachable surface is a product of two files:
+the route table and the role seed. Neither shows it alone, so
+`tests/Integration/AnonymousReachabilityTest.php` computes the intersection
+against a real database and pins it. Widening the `guest` role or adding a route
+cannot quietly open something nobody reviewed.
+
 Permission slugs are `resource.action`. A role may be granted `anime.*` or `*`;
 a route may never *require* a wildcard (`PermissionSlug::required()` refuses
 one), so a route cannot accidentally ask for something every role satisfies.
@@ -197,6 +210,34 @@ Migrations are forward-only SQL, applied inside a transaction, recorded in
 `schema_migrations`. The schema is reproducible from the repository alone —
 the single largest gap in the legacy project, whose ~37 tables existed only
 inside the production database.
+
+---
+
+## 8b. The catalogue schema
+
+Migration `0007` is a normalised replacement for the legacy catalogue, not a
+transcription of it. Three specific findings from the review are addressed:
+
+**Fansub membership.** The old lookup was
+`JSON_EXTRACT(save,'$.fansub') LIKE '%"12"%'` — unable to use an index, and
+`'12'` silently matches `'120'` the moment the JSON format shifts. It becomes
+`anime_uploaders`, a join table with a real index.
+
+**Parallel tables.** `links` and `links3`, `wp_posts` and `wp_posts2` were live
+side by side with no documented winner. There is one table per concept, and
+`episode_view_counts` is separated from `episodes` only because a hot counter
+update should not contend with catalogue reads.
+
+**Draft state.** The old admin wrote straight to the live `datasheet` table, so a
+half-filled entry was immediately public. `is_published` gives an editorial
+workflow, and publication is a permissioned step the entity can refuse: an anime
+with no synopsis or cover, or an episode with no release, is not publishable.
+
+One more rule lives in the domain rather than at the edge: `EpisodeRelease`
+validates its URL against an allowlist of embeddable hosts and requires https.
+"Which hosts will we embed" is a policy question, and embedding an arbitrary
+uploader-supplied URL makes a video page only as safe as its least careful
+contributor.
 
 ---
 
@@ -308,3 +349,12 @@ The strangler-fig sequence, one module at a time:
 Order: `Anime` → `Episode` → `Community` (fansubs) → `Watch` → `Profile` →
 `Admin`. Catalogue reads first, because they are the highest-traffic and
 lowest-risk surface; admin last, because it is the highest-risk one.
+
+The first three now exist, which changes what step 1 means for them. Because the
+new schema is normalised rather than a copy, going live is a **data import**, not
+a table rename: a script that reads the legacy `datasheet`, `mal__*`,
+`episodelist` and `links` tables, resolves the JSON fansub field into
+`anime_uploaders` rows, and writes through the repositories so every domain
+invariant is enforced on the way in. Entries that fail an invariant land as
+drafts for an editor rather than being dropped — the import's job is to surface
+the legacy data's inconsistencies, not to silently preserve them.

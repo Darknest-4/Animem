@@ -6,6 +6,10 @@ use Yume\Api\Presentation\Http\Controller\AdminFeatureController;
 use Yume\Api\Presentation\Http\Controller\AdminRoleController;
 use Yume\Api\Presentation\Http\Controller\AdminSecurityController;
 use Yume\Api\Presentation\Http\Controller\AdminUserController;
+use Yume\Api\Presentation\Http\Controller\AnimeController;
+use Yume\Api\Presentation\Http\Controller\EpisodeController;
+use Yume\Api\Presentation\Http\Controller\StatsController;
+use Yume\Api\Presentation\Http\Controller\UploaderController;
 use Yume\Api\Presentation\Http\Controller\AuthController;
 use Yume\Api\Presentation\Http\Controller\FeatureController;
 use Yume\Api\Presentation\Http\Controller\HealthController;
@@ -99,9 +103,95 @@ return static function (Router $router): void {
     $router->get($v1 . '/features', [FeatureController::class, 'index'], 'features.index')
         ->public();
 
+    // --------------------------------------------------------------- catalogue
+    // Reads are public: the whole point of an anime index is being readable, and
+    // the `guest` role holds anime.view / episode.view / uploader.view. Drafts
+    // are filtered out for anyone without anime.edit, inside the handler.
+    $router->get($v1 . '/anime', [AnimeController::class, 'index'], 'anime.index')
+        ->can('anime.view');
+
+    $router->get($v1 . '/anime/{identifier:[A-Za-z0-9-]{1,200}}', [AnimeController::class, 'show'], 'anime.show')
+        ->can('anime.view');
+
+    $router->post($v1 . '/anime', [AnimeController::class, 'create'], 'anime.create')
+        ->can('anime.create');
+
+    $router->patch($v1 . '/anime/{id:[0-9a-fA-F-]{36}}', [AnimeController::class, 'update'], 'anime.update')
+        ->can('anime.edit');
+
+    // Publishing is separate from editing: filling in a draft and making it
+    // public are different decisions, and the second one is auditable.
+    $router->post($v1 . '/anime/{id:[0-9a-fA-F-]{36}}/publish', [AnimeController::class, 'publish'], 'anime.publish')
+        ->can('anime.edit');
+
+    $router->delete($v1 . '/anime/{id:[0-9a-fA-F-]{36}}', [AnimeController::class, 'delete'], 'anime.delete')
+        ->can('anime.delete');
+
+    // ---------------------------------------------------------------- episodes
+    $router->get(
+        $v1 . '/anime/{id:[0-9a-fA-F-]{36}}/episodes',
+        [EpisodeController::class, 'index'],
+        'episode.index',
+    )->can('episode.view');
+
+    $router->post(
+        $v1 . '/anime/{id:[0-9a-fA-F-]{36}}/episodes',
+        [EpisodeController::class, 'create'],
+        'episode.create',
+    )->can('episode.create');
+
+    $router->post(
+        $v1 . '/episodes/{id:[0-9a-fA-F-]{36}}/releases',
+        [EpisodeController::class, 'addRelease'],
+        'episode.release.add',
+    )->can('episode.edit');
+
+    $router->post(
+        $v1 . '/episodes/{id:[0-9a-fA-F-]{36}}/publish',
+        [EpisodeController::class, 'publish'],
+        'episode.publish',
+    )->can('episode.edit');
+
+    $router->delete(
+        $v1 . '/episodes/{id:[0-9a-fA-F-]{36}}',
+        [EpisodeController::class, 'delete'],
+        'episode.delete',
+    )->can('episode.delete');
+
+    // Lets the upload form validate a URL before submitting it.
+    $router->get($v1 . '/episodes/allowed-hosts', [EpisodeController::class, 'allowedHosts'], 'episode.allowed_hosts')
+        ->can('episode.view');
+
+    // --------------------------------------------------------------- uploaders
+    $router->get($v1 . '/uploaders', [UploaderController::class, 'index'], 'uploader.index')
+        ->can('uploader.view');
+
+    $router->get(
+        $v1 . '/uploaders/{identifier:[A-Za-z0-9-]{1,200}}',
+        [UploaderController::class, 'show'],
+        'uploader.show',
+    )->can('uploader.view');
+
+    $router->post($v1 . '/uploaders', [UploaderController::class, 'create'], 'uploader.create')
+        ->can('uploader.manage');
+
+    $router->patch($v1 . '/uploaders/{id:[0-9a-fA-F-]{36}}', [UploaderController::class, 'update'], 'uploader.update')
+        ->can('uploader.manage');
+
+    // ------------------------------------------------------------------- stats
+    $router->get($v1 . '/stats', [StatsController::class, 'overview'], 'stats.overview')
+        ->can('stats.view');
+
     // ------------------------------------------------------------------- admin
     $router->get($v1 . '/admin/users', [AdminUserController::class, 'index'], 'admin.users.index')
         ->can('admin.access', 'user.view');
+
+    // Suspending an account is a heavier act than reading the user list.
+    $router->patch(
+        $v1 . '/admin/users/{id:[0-9a-fA-F-]{36}}/status',
+        [AdminUserController::class, 'setStatus'],
+        'admin.users.status',
+    )->can('admin.access', 'user.manage');
 
     // Roles. Reading the catalogue is separate from changing who holds what.
     $router->get($v1 . '/admin/roles', [AdminRoleController::class, 'index'], 'admin.roles.index')

@@ -19,6 +19,8 @@ final class Route
 
     private bool $explicitlyPublic = false;
 
+    private bool $requiresAuthentication = false;
+
     private bool $accessDeclared = false;
 
     private ?string $rateLimitPolicy = null;
@@ -42,7 +44,15 @@ final class Route
         [$this->regex, $this->parameterNames] = self::compilePattern($pattern);
     }
 
-    /** Requires every listed permission (AND, not OR). */
+    /**
+     * Requires every listed permission (AND, not OR).
+     *
+     * This does NOT imply authentication. The `guest` role holds a real
+     * permission set, so an anonymous caller reaches a `can('anime.view')` route
+     * if guest carries that permission and is refused by AuthorizeMiddleware if
+     * it does not. Forcing a session here would make the public catalogue
+     * unreadable while still calling it permission-checked.
+     */
     public function can(string ...$permissions): self
     {
         foreach ($permissions as $permission) {
@@ -66,6 +76,7 @@ final class Route
     /** Authenticated, but requiring no particular permission beyond a valid session. */
     public function authenticated(): self
     {
+        $this->requiresAuthentication = true;
         $this->accessDeclared = true;
 
         return $this;
@@ -105,7 +116,7 @@ final class Route
 
     public function requiresAuthentication(): bool
     {
-        return !$this->explicitlyPublic;
+        return $this->requiresAuthentication;
     }
 
     public function accessDeclared(): bool

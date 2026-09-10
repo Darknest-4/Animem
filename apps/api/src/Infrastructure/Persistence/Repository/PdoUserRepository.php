@@ -10,6 +10,7 @@ use Yume\Api\Domain\User\ValueObject\Email;
 use Yume\Api\Domain\User\ValueObject\UserId;
 use Yume\Api\Domain\User\ValueObject\Username;
 use Yume\Api\Domain\User\ValueObject\UserStatus;
+use Yume\Api\Infrastructure\Persistence\PostgreSQL\PgArray;
 use Yume\Contracts\Persistence\ConnectionInterface;
 
 final class PdoUserRepository implements UserRepositoryInterface
@@ -162,7 +163,7 @@ final class PdoUserRepository implements UserRepositoryInterface
             Email::fromString((string) $row['email']),
             UserStatus::from((string) $row['status']),
             self::toDate($row['email_verified_at'] ?? null),
-            self::parsePgArray($row['role_slugs'] ?? null),
+            PgArray::toStrings($row['role_slugs'] ?? null),
             self::toDate($row['created_at']) ?? new \DateTimeImmutable(),
             self::toDate($row['updated_at']) ?? new \DateTimeImmutable(),
         );
@@ -175,31 +176,5 @@ final class PdoUserRepository implements UserRepositoryInterface
         }
 
         return new \DateTimeImmutable($value);
-    }
-
-    /**
-     * PDO returns a PostgreSQL array as its literal text form, e.g. {admin,user}.
-     *
-     * @return list<string>
-     */
-    private static function parsePgArray(mixed $value): array
-    {
-        if (is_array($value)) {
-            return array_values(array_map('strval', $value));
-        }
-
-        if (!is_string($value) || $value === '' || $value === '{}') {
-            return [];
-        }
-
-        $inner = trim($value, '{}');
-        if ($inner === '') {
-            return [];
-        }
-
-        return array_values(array_map(
-            static fn (string $slug): string => trim($slug, '"'),
-            explode(',', $inner),
-        ));
     }
 }

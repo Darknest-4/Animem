@@ -3,12 +3,15 @@
 declare(strict_types=1);
 
 use Yume\Api\Application\Feature\FeatureFlagResolver;
+use Yume\Api\Domain\Anime\Repository\AnimeRepositoryInterface;
 use Yume\Api\Domain\Auth\Repository\CredentialRepositoryInterface;
 use Yume\Api\Domain\Auth\Repository\OneTimeTokenRepositoryInterface;
 use Yume\Api\Domain\Auth\Repository\SessionRepositoryInterface;
 use Yume\Api\Domain\Auth\Service\PasswordPolicy;
 use Yume\Api\Domain\Auth\Service\SessionPolicy;
 use Yume\Api\Domain\Authorization\Repository\RoleRepositoryInterface;
+use Yume\Api\Domain\Community\Repository\UploaderRepositoryInterface;
+use Yume\Api\Domain\Episode\Repository\EpisodeRepositoryInterface;
 use Yume\Api\Domain\Feature\Repository\FeatureFlagRepositoryInterface;
 use Yume\Api\Domain\Security\Audit\SecurityAuditRepositoryInterface;
 use Yume\Api\Domain\Security\Ban\BanRepositoryInterface;
@@ -22,7 +25,9 @@ use Yume\Api\Domain\Security\RateLimit\RateLimiterInterface;
 use Yume\Api\Domain\Security\Risk\RiskEngine;
 use Yume\Api\Domain\User\Repository\UserRepositoryInterface;
 use Yume\Api\Infrastructure\Cache\ApcuCache;
+use Yume\Api\Infrastructure\Persistence\Repository\PdoAnimeRepository;
 use Yume\Api\Infrastructure\Persistence\Repository\PdoBanRepository;
+use Yume\Api\Infrastructure\Persistence\Repository\PdoEpisodeRepository;
 use Yume\Api\Infrastructure\Persistence\Repository\PdoCredentialRepository;
 use Yume\Api\Infrastructure\Persistence\Repository\PdoFeatureFlagRepository;
 use Yume\Api\Infrastructure\Mail\LogMailer;
@@ -33,6 +38,7 @@ use Yume\Api\Infrastructure\Persistence\Repository\PdoOneTimeTokenRepository;
 use Yume\Api\Infrastructure\Persistence\Repository\PdoRoleRepository;
 use Yume\Api\Infrastructure\Persistence\Repository\PdoSecurityAuditRepository;
 use Yume\Api\Infrastructure\Persistence\Repository\PdoSessionRepository;
+use Yume\Api\Infrastructure\Persistence\Repository\PdoUploaderRepository;
 use Yume\Api\Infrastructure\Persistence\Repository\PdoUserRepository;
 use Yume\Api\Infrastructure\Queue\PdoQueue;
 use Yume\Api\Infrastructure\Security\PdoRateLimiter;
@@ -118,6 +124,11 @@ return static function (Container $container, Config $config): void {
     $container->bind(NetworkReputationRepositoryInterface::class, PdoNetworkReputationRepository::class);
     $container->bind(RateLimiterInterface::class, PdoRateLimiter::class);
     $container->bind(OneTimeTokenRepositoryInterface::class, PdoOneTimeTokenRepository::class);
+
+    // Catalogue
+    $container->bind(AnimeRepositoryInterface::class, PdoAnimeRepository::class);
+    $container->bind(EpisodeRepositoryInterface::class, PdoEpisodeRepository::class);
+    $container->bind(UploaderRepositoryInterface::class, PdoUploaderRepository::class);
 
     $container->singleton(QueueInterface::class, static fn (Container $c): QueueInterface => new PdoQueue(
         $c->get(ConnectionInterface::class),

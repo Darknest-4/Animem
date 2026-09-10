@@ -24,6 +24,9 @@ enum SecurityEventType: string
     case RoleAssigned = 'role.assigned';
     case RoleRevoked = 'role.revoked';
     case FeatureFlagChanged = 'feature_flag.changed';
+    case CatalogueDeleted = 'catalogue.deleted';
+    case UserSuspended = 'user.suspended';
+    case UserReinstated = 'user.reinstated';
 
     public function severity(): string
     {
@@ -32,7 +35,8 @@ enum SecurityEventType: string
             self::LoginFailed, self::RateLimited, self::AuthorizationDenied => 'notice',
             self::LoginBlocked, self::RiskChallenged, self::SessionRevoked,
             self::PasswordChanged, self::PasswordUpgraded, self::RoleAssigned,
-            self::RoleRevoked, self::FeatureFlagChanged, self::BanLifted => 'warning',
+            self::RoleRevoked, self::FeatureFlagChanged, self::BanLifted,
+            self::CatalogueDeleted, self::UserSuspended, self::UserReinstated => 'warning',
             self::RiskBlocked, self::BanApplied, self::SessionHijackSuspected => 'critical',
         };
     }

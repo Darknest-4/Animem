@@ -130,18 +130,24 @@ $router->post('/api/v1/auth/login', [AuthController::class, 'login'])
     ->withoutCsrf();
 ```
 
-```
-$ make routes
-  GET    /health                                      -              public
-  POST   /api/v1/auth/register                        auth.register  public
-  POST   /api/v1/auth/login                           auth.login     public
-  POST   /api/v1/auth/logout                          -              authenticated
-  GET    /api/v1/auth/me                              -              authenticated
-  GET    /api/v1/auth/sessions                        -              authenticated
-  DELETE /api/v1/auth/sessions/{id}                   -              authenticated
-  GET    /api/v1/features                             -              public
-  GET    /api/v1/admin/users                          -              admin.access + user.view
-```
+`make routes` prints the whole table (45 routes) with the rule for each.
+
+Three access modes, and a route must pick one or the application will not boot:
+
+| Declaration | Meaning |
+|---|---|
+| `->public()` | No session, no permission. Health checks, sign-in, mailed-token endpoints. |
+| `->authenticated()` | A valid session, nothing more. `/auth/me`, session management. |
+| `->can(...)` | The listed permissions. **Does not imply a session.** |
+
+That last row is the one worth reading twice. The `guest` role holds a real
+permission set (`anime.view`, `episode.view`, `uploader.view`), so an anonymous
+visitor reaches `->can('anime.view')` and is refused `->can('anime.edit')` — the
+catalogue stays readable without every read becoming `public()` and losing its
+permission check. Fifteen of the 45 routes are anonymously reachable; the exact
+list is pinned by `tests/Integration/AnonymousReachabilityTest.php`, because it
+is a product of the route table *and* the role seed and neither file shows it
+alone.
 
 Permissions are `resource.action` slugs. A role may hold `anime.*` or `*`; a
 route may never *require* a wildcard. Roles ship seeded: `guest`, `user`,
@@ -223,14 +229,52 @@ Add one by dropping `NNNN_name.sql` into
 
 ---
 
+## The catalogue
+
+`Anime`, `Episode` and `Community` (fansub groups) are implemented on a
+normalised schema, which is where three findings from the review get fixed:
+
+- Fansub membership was `JSON_EXTRACT(save,'$.fansub') LIKE '%"12"%'` — never
+  indexable, and `'12'` matches `'120'`. It is now the `anime_uploaders` join
+  table.
+- Entries were written straight to the live table. Now everything starts as a
+  draft; `POST /anime/{id}/publish` is a separate, permissioned step that refuses
+  an entry with no synopsis or cover, and an episode with no release.
+- Release URLs were embedded verbatim. `EpisodeRelease` accepts https only, from
+  an allowlist of embeddable hosts, so a video page is not as safe as its least
+  careful uploader.
+
+```
+GET    /api/v1/anime?q=&genre=&type=&status=&season=&year=&sort=&page=
+GET    /api/v1/anime/{id-or-slug}
+POST   /api/v1/anime                          anime.create
+PATCH  /api/v1/anime/{id}                     anime.edit
+POST   /api/v1/anime/{id}/publish             anime.edit
+DELETE /api/v1/anime/{id}                     anime.delete
+GET    /api/v1/anime/{id}/episodes
+POST   /api/v1/anime/{id}/episodes            episode.create
+POST   /api/v1/episodes/{id}/releases         episode.edit
+GET    /api/v1/uploaders, /api/v1/uploaders/{id-or-slug}
+GET    /api/v1/stats                          stats.view
+```
+
+Drafts are invisible to anyone without `anime.edit` — and answer 404 rather than
+403, so an unpublished entry is not discoverable by probing.
+
+---
+
 ## Status
 
-Implemented: `User`, `Auth`, `Authorization`, `Feature`, `Security`.
+Implemented: `User`, `Auth`, `Authorization`, `Feature`, `Security`, `Anime`,
+`Episode`, `Community`.
 
 Scaffolded, with the migration target for each documented in
 [`apps/api/src/Domain/README.md`](apps/api/src/Domain/README.md): `Profile`,
-`Anime`, `Episode`, `Watch`, `Library`, `Community`, `Notification`,
-`Achievement`, `Admin`, `Developer`, `Media`.
+`Watch`, `Library`, `Notification`, `Achievement`, `Admin`, `Developer`, `Media`.
 
-The legacy tree is untouched and still serves production. Nothing here is wired
-into it yet.
+Every permission the seed creates now has a route behind it, except `*` — which
+is a grant, never a requirement.
+
+The legacy tree still serves production. Nothing here is wired into it yet: the
+catalogue schema is new and normalised rather than a copy of the old one, so
+going live needs a data import, not a switch.

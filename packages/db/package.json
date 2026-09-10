@@ -6,8 +6,14 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" },
-    "./schema": { "types": "./dist/schema/index.d.ts", "default": "./dist/schema/index.js" }
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./schema": {
+      "types": "./dist/schema/index.d.ts",
+      "default": "./dist/schema/index.js"
+    }
   },
   "scripts": {
     "build": "tsc -b",
@@ -16,7 +22,7 @@
     "lint:fix": "eslint src --fix",
     "test": "vitest run",
     "test:unit": "vitest run",
-    "generate": "drizzle-kit generate",
+    "generate": "tsc -b && drizzle-kit generate",
     "migrate": "tsx src/scripts/migrate.ts",
     "seed": "tsx src/scripts/seed.ts",
     "studio": "drizzle-kit studio",
@@ -26,7 +32,8 @@
     "@yume/config": "workspace:*",
     "@yume/core": "workspace:*",
     "drizzle-orm": "^0.45.2",
-    "postgres": "^3.4.5"
+    "postgres": "^3.4.5",
+    "@yume/logger": "workspace:*"
   },
   "devDependencies": {
     "@yume/eslint-config": "workspace:*",

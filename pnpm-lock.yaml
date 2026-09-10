@@ -210,6 +210,9 @@ importers:
       '@yume/core':
         specifier: workspace:*
         version: link:../core
+      '@yume/logger':
+        specifier: workspace:*
+        version: link:../logger
       drizzle-orm:
         specifier: ^0.45.2
         version: 0.45.2(gel@2.2.0)(postgres@3.4.9)

@@ -1,0 +1,28 @@
+parameters:
+    level: 8
+    paths:
+        - apps/api/src
+        - apps/api/bootstrap
+        - packages
+
+    excludePaths:
+        analyse:
+            - apps/api/src/Infrastructure/Persistence/Migration/*
+
+    treatPhpDocTypesAsCertain: false
+    checkMissingCallableSignature: true
+    reportUnmatchedIgnoredErrors: true
+
+    ignoreErrors:
+        # Repository hydration reads untyped rows out of PDO; the value objects
+        # constructed from them are what actually validate the data.
+        -
+            message: '#Cannot cast mixed to (string|int)#'
+            paths:
+                - apps/api/src/Infrastructure/Persistence/Repository/*
+
+        # Config values are mixed by nature; Config::string()/int()/bool() narrow them.
+        -
+            message: '#Parameter \#\d+ \$\w+ of .* expects .*, mixed given#'
+            paths:
+                - apps/api/bootstrap/*

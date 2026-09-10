@@ -36,10 +36,17 @@ final readonly class Username implements \Stringable
         return new self($value);
     }
 
-    /** Case-insensitive uniqueness key; also folds visually confusable separators. */
+    /**
+     * Case-insensitive uniqueness key with separators removed entirely.
+     *
+     * `kitsune`, `Kit.Sune`, `kit-sune` and `kit_sune` therefore collide and only
+     * one of them can exist. That is deliberate: on a community site the cost of
+     * refusing a slightly different spelling is far lower than the cost of
+     * letting someone register a name that impersonates an existing member.
+     */
     public function canonical(): string
     {
-        return str_replace(['.', '-'], '_', mb_strtolower($this->value));
+        return str_replace(['.', '-', '_'], '', mb_strtolower($this->value));
     }
 
     public function __toString(): string

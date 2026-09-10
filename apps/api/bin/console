@@ -1,0 +1,233 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+/**
+ * Operational CLI.
+ *
+ *   bin/console migrate            apply pending migrations
+ *   bin/console migrate:status     list applied and pending migrations
+ *   bin/console user:create        create a user (optionally with a role)
+ *   bin/console user:role          grant or revoke a role
+ *   bin/console feature:set        change a feature flag without a deploy
+ *   bin/console feature:list       show every flag and its strategy
+ *   bin/console routes             print the route table with its access rules
+ *   bin/console housekeeping       prune expired sessions and rate-limit rows
+ */
+
+use Yume\Api\Application\Feature\FeatureFlagResolver;
+use Yume\Api\Domain\Auth\Entity\Credential;
+use Yume\Api\Domain\Auth\Repository\CredentialRepositoryInterface;
+use Yume\Api\Domain\Auth\Repository\SessionRepositoryInterface;
+use Yume\Api\Domain\Auth\Service\PasswordPolicy;
+use Yume\Api\Domain\Auth\ValueObject\PasswordHash;
+use Yume\Api\Domain\Authorization\Repository\RoleRepositoryInterface;
+use Yume\Api\Domain\Feature\Repository\FeatureFlagRepositoryInterface;
+use Yume\Api\Domain\Feature\ValueObject\FlagKey;
+use Yume\Api\Domain\Feature\ValueObject\RolloutStrategy;
+use Yume\Api\Domain\User\Entity\User;
+use Yume\Api\Domain\User\Repository\UserRepositoryInterface;
+use Yume\Api\Domain\User\ValueObject\Email;
+use Yume\Api\Domain\User\ValueObject\UserId;
+use Yume\Api\Domain\User\ValueObject\Username;
+use Yume\Api\Infrastructure\Security\PdoRateLimiter;
+use Yume\Api\Presentation\Http\Route;
+use Yume\Api\Presentation\Http\Router;
+use Yume\Contracts\Clock\ClockInterface;
+use Yume\Contracts\Identity\IdGeneratorInterface;
+use Yume\Contracts\Persistence\ConnectionInterface;
+use Yume\Database\Migration\Migrator;
+use Yume\Security\Password\PasswordHasher;
+
+if (PHP_SAPI !== 'cli') {
+    exit(1);
+}
+
+$container = require dirname(__DIR__) . '/bootstrap/app.php';
+
+$command = $argv[1] ?? 'help';
+$arguments = array_slice($argv, 2);
+
+/** @param list<string> $arguments */
+function option(array $arguments, string $name, ?string $default = null): ?string
+{
+    foreach ($arguments as $argument) {
+        if (str_starts_with($argument, '--' . $name . '=')) {
+            return substr($argument, strlen($name) + 3);
+        }
+    }
+
+    return $default;
+}
+
+function fail(string $message): never
+{
+    fwrite(STDERR, "\033[31m" . $message . "\033[0m\n");
+    exit(1);
+}
+
+function ok(string $message): void
+{
+    fwrite(STDOUT, "\033[32m" . $message . "\033[0m\n");
+}
+
+try {
+    switch ($command) {
+        case 'migrate':
+            $applied = $container->get(Migrator::class)->migrate();
+            if ($applied === []) {
+                ok('Schema is up to date; nothing to apply.');
+                break;
+            }
+            foreach ($applied as $version) {
+                ok('Applied ' . $version);
+            }
+            break;
+
+        case 'migrate:status':
+            $migrator = $container->get(Migrator::class);
+            foreach ($migrator->applied() as $version) {
+                fwrite(STDOUT, "  [applied] {$version}\n");
+            }
+            foreach ($migrator->pending() as $version) {
+                fwrite(STDOUT, "  [pending] {$version}\n");
+            }
+            break;
+
+        case 'user:create':
+            $username = option($arguments, 'username') ?? fail('--username= is required');
+            $email = option($arguments, 'email') ?? fail('--email= is required');
+            $password = option($arguments, 'password') ?? fail('--password= is required');
+            $role = option($arguments, 'role', 'user');
+
+            $users = $container->get(UserRepositoryInterface::class);
+            $credentials = $container->get(CredentialRepositoryInterface::class);
+            $roles = $container->get(RoleRepositoryInterface::class);
+            $clock = $container->get(ClockInterface::class);
+
+            $usernameVo = Username::fromString($username);
+            $emailVo = Email::fromString($email);
+
+            // The same policy the HTTP endpoint applies: a CLI-created admin must
+            // not be allowed a weaker password than a self-registered member.
+            $container->get(PasswordPolicy::class)->assertAcceptable($password, [$username, $email]);
+
+            if ($users->usernameExists($usernameVo)) {
+                fail(sprintf('Username "%s" is already taken.', $username));
+            }
+            if ($users->emailExists($emailVo)) {
+                fail(sprintf('Email "%s" is already registered.', $email));
+            }
+
+            $userId = UserId::fromString($container->get(IdGeneratorInterface::class)->generate());
+            $now = $clock->now();
+
+            $container->get(ConnectionInterface::class)->transaction(
+                static function () use ($users, $credentials, $roles, $userId, $usernameVo, $emailVo, $now, $password, $role, $container): void {
+                    // CLI-created accounts skip email verification: there is no
+                    // inbox to click through during a container bootstrap.
+                    $users->save(User::register($userId, $usernameVo, $emailVo, $now, [$role], false));
+                    $credentials->save(Credential::create(
+                        $userId,
+                        PasswordHash::argon2id($container->get(PasswordHasher::class)->hash($password)),
+                        $now,
+                    ));
+                    $roles->assignRole($userId, $role);
+                },
+            );
+
+            ok(sprintf('Created user %s (%s) with role "%s".', $username, $userId->value, $role));
+            break;
+
+        case 'user:role':
+            $userId = UserId::fromString(option($arguments, 'user') ?? fail('--user=<uuid> is required'));
+            $role = option($arguments, 'role') ?? fail('--role= is required');
+            $revoke = in_array('--revoke', $arguments, true);
+
+            $roles = $container->get(RoleRepositoryInterface::class);
+
+            if ($revoke) {
+                $roles->revokeRole($userId, $role);
+                ok(sprintf('Revoked role "%s" from %s.', $role, $userId->value));
+                break;
+            }
+
+            $roles->assignRole($userId, $role);
+            ok(sprintf('Granted role "%s" to %s.', $role, $userId->value));
+            break;
+
+        case 'feature:list':
+            $repository = $container->get(FeatureFlagRepositoryInterface::class);
+            foreach ($repository->all() as $flag) {
+                fwrite(STDOUT, sprintf(
+                    "  %-24s %-12s %3d%%  %s\n",
+                    $flag->key->value,
+                    $flag->strategy()->value,
+                    $flag->rolloutPercentage(),
+                    $flag->description() ?? '',
+                ));
+            }
+            break;
+
+        case 'feature:set':
+            $key = FlagKey::fromString(option($arguments, 'key') ?? fail('--key= is required'));
+            $strategy = RolloutStrategy::from(option($arguments, 'strategy') ?? fail('--strategy= is required'));
+            $percentage = (int) (option($arguments, 'percentage') ?? '0');
+
+            $repository = $container->get(FeatureFlagRepositoryInterface::class);
+            $existing = $repository->find($key) ?? fail(sprintf('Feature flag "%s" does not exist.', $key->value));
+
+            $repository->save(\Yume\Api\Domain\Feature\Entity\FeatureFlag::reconstitute(
+                $key,
+                $existing->name(),
+                $existing->description(),
+                $strategy,
+                $percentage,
+                $existing->payload(),
+                $existing->createdAt,
+                $container->get(ClockInterface::class)->now(),
+                $existing->expiresAt(),
+            ));
+
+            $container->get(FeatureFlagResolver::class)->refresh();
+            ok(sprintf('Feature "%s" is now %s at %d%%.', $key->value, $strategy->value, $percentage));
+            break;
+
+        case 'routes':
+            foreach ($container->get(Router::class)->routes() as $route) {
+                /** @var Route $route */
+                $access = $route->isPublic()
+                    ? 'public'
+                    : ($route->permissions() === [] ? 'authenticated' : implode(' + ', $route->permissions()));
+
+                fwrite(STDOUT, sprintf(
+                    "  %-6s %-44s %-14s %s\n",
+                    $route->method,
+                    $route->pattern,
+                    $route->rateLimitPolicy() ?? '-',
+                    $access,
+                ));
+            }
+            break;
+
+        case 'housekeeping':
+            $clock = $container->get(ClockInterface::class);
+            $now = $clock->now();
+
+            $sessions = $container->get(SessionRepositoryInterface::class)
+                ->deleteExpiredBefore($now->modify('-30 days'));
+
+            $limiter = $container->get(\Yume\Api\Domain\Security\RateLimit\RateLimiterInterface::class);
+            $buckets = $limiter instanceof PdoRateLimiter ? $limiter->purgeExpired($now) : 0;
+
+            ok(sprintf('Pruned %d expired sessions and %d rate-limit buckets.', $sessions, $buckets));
+            break;
+
+        default:
+            fwrite(STDOUT, file_get_contents(__FILE__, false, null, 0, 1200) . "\n");
+            break;
+    }
+} catch (Throwable $e) {
+    fail($e::class . ': ' . $e->getMessage());
+}

@@ -1,0 +1,136 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+/**
+ * Background worker.
+ *
+ * Polls the PostgreSQL-backed queue, runs jobs, and performs periodic
+ * housekeeping. Shuts down gracefully: SIGTERM finishes the job in flight
+ * rather than abandoning it half-done, which is what makes a rolling deploy safe.
+ */
+
+use Yume\Api\Domain\Auth\Repository\SessionRepositoryInterface;
+use Yume\Api\Domain\Security\RateLimit\RateLimiterInterface;
+use Yume\Api\Infrastructure\Security\PdoRateLimiter;
+use Yume\Contracts\Clock\ClockInterface;
+use Yume\Contracts\Logging\LoggerInterface;
+use Yume\Contracts\Queue\QueueInterface;
+use Yume\Shared\Config\Config;
+
+if (PHP_SAPI !== 'cli') {
+    exit(1);
+}
+
+$container = require dirname(__DIR__) . '/bootstrap/app.php';
+
+$config = $container->get(Config::class);
+$logger = $container->get(LoggerInterface::class)->withContext(['component' => 'worker']);
+$queue = $container->get(QueueInterface::class);
+$clock = $container->get(ClockInterface::class);
+
+$pollInterval = $config->int('queue.poll_interval_seconds', 2);
+$heartbeatFile = dirname(__DIR__) . '/storage/tmp/worker.heartbeat';
+$housekeepingInterval = 300;
+
+$shouldStop = false;
+
+if (function_exists('pcntl_async_signals')) {
+    pcntl_async_signals(true);
+    $stop = static function (int $signal) use (&$shouldStop, $logger): void {
+        $logger->info('Shutdown signal received; finishing current job.', ['signal' => $signal]);
+        $shouldStop = true;
+    };
+    pcntl_signal(SIGTERM, $stop);
+    pcntl_signal(SIGINT, $stop);
+}
+
+/**
+ * Job handlers.
+ *
+ * Deliberately a plain map rather than a discovery mechanism: an unknown job
+ * name must fail loudly instead of being silently dropped.
+ *
+ * @var array<string, callable(array<string, mixed>): void> $handlers
+ */
+$handlers = [
+    'noop' => static function (array $payload) use ($logger): void {
+        $logger->info('noop job executed', ['payload' => $payload]);
+    },
+];
+
+$logger->info('Worker started.', [
+    'queue' => $config->string('queue.name', 'default'),
+    'poll_interval' => $pollInterval,
+]);
+
+$lastHousekeeping = 0;
+
+while (!$shouldStop) {
+    @touch($heartbeatFile);
+
+    $now = $clock->timestamp();
+    if ($now - $lastHousekeeping >= $housekeepingInterval) {
+        $lastHousekeeping = $now;
+
+        try {
+            $prunedSessions = $container->get(SessionRepositoryInterface::class)
+                ->deleteExpiredBefore($clock->now()->modify('-30 days'));
+
+            $limiter = $container->get(RateLimiterInterface::class);
+            $prunedBuckets = $limiter instanceof PdoRateLimiter
+                ? $limiter->purgeExpired($clock->now())
+                : 0;
+
+            if ($prunedSessions > 0 || $prunedBuckets > 0) {
+                $logger->info('Housekeeping completed.', [
+                    'pruned_sessions' => $prunedSessions,
+                    'pruned_rate_limit_buckets' => $prunedBuckets,
+                ]);
+            }
+        } catch (Throwable $e) {
+            // Housekeeping is best-effort; it must never stop job processing.
+            $logger->error('Housekeeping failed.', ['exception' => $e->getMessage()]);
+        }
+    }
+
+    try {
+        $job = $queue->reserve();
+    } catch (Throwable $e) {
+        $logger->error('Failed to reserve a job.', ['exception' => $e->getMessage()]);
+        sleep($pollInterval);
+        continue;
+    }
+
+    if ($job === null) {
+        sleep($pollInterval);
+        continue;
+    }
+
+    $context = ['job_id' => $job['id'], 'job' => $job['name'], 'attempt' => $job['attempts']];
+
+    if (!isset($handlers[$job['name']])) {
+        $logger->error('No handler registered for job.', $context);
+        // Not retryable: another attempt cannot invent a handler.
+        $queue->fail($job['id'], 'no_handler', retry: false);
+        continue;
+    }
+
+    $startedAt = microtime(true);
+
+    try {
+        $handlers[$job['name']]($job['payload']);
+        $queue->complete($job['id']);
+
+        $logger->info('Job completed.', [
+            ...$context,
+            'duration_ms' => (int) round((microtime(true) - $startedAt) * 1000),
+        ]);
+    } catch (Throwable $e) {
+        $logger->error('Job failed.', [...$context, 'exception' => $e->getMessage()]);
+        $queue->fail($job['id'], $e->getMessage());
+    }
+}
+
+$logger->info('Worker stopped cleanly.');

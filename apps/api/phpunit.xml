@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/11.5/phpunit.xsd"
+         bootstrap="tests/bootstrap.php"
+         colors="true"
+         cacheDirectory=".phpunit.cache"
+         executionOrder="depends,defects"
+         failOnRisky="true"
+         failOnWarning="true"
+         beStrictAboutOutputDuringTests="true"
+         displayDetailsOnTestsThatTriggerWarnings="true"
+         displayDetailsOnPhpunitDeprecations="true">
+
+    <testsuites>
+        <!-- No I/O. Runs everywhere, including a machine with no database. -->
+        <testsuite name="unit">
+            <directory>tests/Unit</directory>
+        </testsuite>
+
+        <!-- Architectural invariants: layer dependencies, route declarations. -->
+        <testsuite name="contract">
+            <directory>tests/Contract</directory>
+        </testsuite>
+
+        <!-- Regression tests for the specific vulnerabilities in the legacy site. -->
+        <testsuite name="security">
+            <directory>tests/Security</directory>
+        </testsuite>
+
+        <!-- Needs PostgreSQL. Skipped with a clear message when unavailable. -->
+        <testsuite name="integration">
+            <directory>tests/Integration</directory>
+        </testsuite>
+
+        <!-- End-to-end through the real middleware pipeline. Needs PostgreSQL. -->
+        <testsuite name="feature">
+            <directory>tests/Feature</directory>
+        </testsuite>
+    </testsuites>
+
+    <source restrictNotices="true" restrictWarnings="true">
+        <include>
+            <directory>src</directory>
+            <directory>../../packages</directory>
+        </include>
+        <exclude>
+            <directory>src/Infrastructure/Persistence/Migration</directory>
+        </exclude>
+    </source>
+
+    <php>
+        <env name="APP_ENV" value="testing"/>
+        <env name="APP_DEBUG" value="true"/>
+        <env name="APP_SECRET" value="testing-secret-at-least-32-bytes-long!!"/>
+        <env name="SESSION_SECURE_COOKIES" value="false"/>
+        <env name="LOG_STREAM" value="php://memory"/>
+        <env name="LOG_LEVEL" value="critical"/>
+        <env name="FEATURE_ENV_OVERRIDES" value="false"/>
+    </php>
+</phpunit>

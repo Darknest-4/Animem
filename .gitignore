@@ -1,4 +1,36 @@
+# Secrets — never committed. The legacy project shipped its production database
+# password in four tracked JSON files; that must not happen again.
 .env
-.env.local
+.env.*
+!.env.example
+
+# Dependencies
+/vendor/
+**/vendor/
 node_modules/
+
+# Runtime state
+apps/api/storage/logs/*
+apps/api/storage/cache/*
+apps/api/storage/tmp/*
+!apps/api/storage/**/.gitkeep
+
+# Tooling caches
+.phpunit.result.cache
+.phpunit.cache/
+.php-cs-fixer.cache
+.phpstan.cache/
+psalm.cache/
+coverage/
 *.log
+
+# Editors and OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Database dumps
+*.sql.gz
+*.dump

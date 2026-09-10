@@ -1,38 +1,29 @@
-# Secrets — never committed. The legacy project shipped its production database
-# password in four tracked JSON files; that must not happen again.
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+.next/
+out/
+*.tsbuildinfo
+
+# Task cache
+.turbo/
+
+# Secrets — never committed.
 .env
 .env.*
 !.env.example
 
-# Legacy site credentials. These are read only as a fallback when the
-# ANIMEM_DB_* environment variables are not set (see Config/credentials.php).
-# They were tracked with the production password in them until they were removed.
-Config/config.json
-Config/database.json
-private/Config/dbconfig.json
-html/uploaders/Config/database.json
-html/admin/htpasswd/
-html/**/htpasswd/
-
-# Dependencies
-/vendor/
-**/vendor/
-node_modules/
-
-# Runtime state
-apps/api/storage/logs/*
-apps/api/storage/cache/*
-apps/api/storage/tmp/*
-!apps/api/storage/**/.gitkeep
-
-# Tooling caches
-.phpunit.result.cache
-.phpunit.cache/
-.php-cs-fixer.cache
-.phpstan.cache/
-psalm.cache/
+# Test and coverage output
 coverage/
+.vitest/
+
+# Runtime
+logs/
 *.log
+storage/
 
 # Editors and OS
 .idea/

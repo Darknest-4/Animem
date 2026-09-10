@@ -1,0 +1,12 @@
+{
+  "files": [],
+  "references": [
+    { "path": "packages/core" },
+    { "path": "packages/contracts" },
+    { "path": "packages/config" },
+    { "path": "packages/logger" },
+    { "path": "packages/db" },
+    { "path": "packages/security" },
+    { "path": "apps/api" }
+  ]
+}

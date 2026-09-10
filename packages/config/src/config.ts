@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { readFeatureOverrides } from './feature-overrides.js';
 import {
   appSchema,
   databaseSchema,
@@ -99,6 +100,8 @@ export interface Config {
 
   readonly features: {
     readonly allowEnvOverrides: boolean;
+    /** `FEATURE_<KEY>=on|off` from the environment. Empty unless enabled. */
+    readonly overrides: ReadonlyMap<string, boolean>;
   };
 }
 
@@ -198,6 +201,10 @@ export function loadConfig(source: NodeJS.ProcessEnv = process.env): Config {
 
     features: Object.freeze({
       allowEnvOverrides: env.FEATURE_ENV_OVERRIDES,
+      overrides:
+        env.FEATURE_ENV_OVERRIDES && env.NODE_ENV !== 'production'
+          ? readFeatureOverrides(source)
+          : new Map<string, boolean>(),
     }),
   });
 }

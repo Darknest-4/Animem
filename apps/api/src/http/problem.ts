@@ -1,4 +1,4 @@
-import { AppError, isAppError } from '@yume/core';
+import { isAppError } from '@yume/core';
 
 /**
  * RFC 9457 problem responses.
@@ -95,7 +95,7 @@ export function problemHeaders(error: unknown): Record<string, string> {
     return {};
   }
 
-  const retryAfter = (error as AppError).details['retryAfter'];
+  const retryAfter = error.details['retryAfter'];
 
   return typeof retryAfter === 'number' ? { 'retry-after': String(retryAfter) } : {};
 }

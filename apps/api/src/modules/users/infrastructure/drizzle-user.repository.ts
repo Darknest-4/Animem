@@ -7,13 +7,22 @@ import { canonicaliseEmail, canonicaliseUsername } from '../../../shared/index.j
 import type { UserRepository } from '../domain/user.repository.js';
 import { UserId, type User, type UserStatus } from '../domain/user.types.js';
 
-/** The role slugs a user holds, as an array-aggregated subquery. */
+/**
+ * The role slugs a user holds, as an array-aggregated subquery.
+ *
+ * The correlation is written `"users"."id"` rather than interpolating the column
+ * object, which Drizzle renders unqualified as `"id"`. Unqualified, it binds to
+ * `roles.id` from this subquery's own FROM clause instead of the outer row — an
+ * inner scope always wins in SQL. Here the types disagree so it fails loudly;
+ * had `roles.id` been a uuid it would have returned confidently wrong role sets,
+ * which for a permission lookup is the worst possible failure mode.
+ */
 const roleSlugs = sql<string[]>`
   COALESCE(
     (SELECT array_agg(r.slug ORDER BY r.slug)
      FROM ${schema.userRoles} ur
      JOIN ${schema.roles} r ON r.id = ur.role_id
-     WHERE ur.user_id = ${schema.users.id}),
+     WHERE ur.user_id = ${schema.users}.${sql.identifier('id')}),
     ARRAY[]::varchar[]
   )
 `;
@@ -29,7 +38,7 @@ const selection = {
   roles: roleSlugs,
 };
 
-type Row = {
+interface Row {
   id: string;
   username: string;
   email: string;
@@ -38,7 +47,7 @@ type Row = {
   createdAt: Date;
   updatedAt: Date;
   roles: string[] | null;
-};
+}
 
 function toUser(row: Row): User {
   return {

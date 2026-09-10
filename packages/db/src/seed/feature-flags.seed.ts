@@ -2,7 +2,7 @@ export interface FeatureFlagSeed {
   readonly flagKey: string;
   readonly name: string;
   readonly description: string;
-  readonly strategy: 'off' | 'on' | 'percentage' | 'role' | 'user_list' | 'ip_list';
+  readonly strategy: 'off' | 'on' | 'percentage' | 'role_list' | 'user_list' | 'ip_list';
   readonly rolloutPercentage: number;
 }
 

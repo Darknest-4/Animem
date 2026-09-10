@@ -1,0 +1,10 @@
+export type { Mailer } from './domain/mailer.js';
+export type { MailMessage } from './domain/message.js';
+export { createMailer } from './infrastructure/mailer.factory.js';
+export { LogMailer } from './infrastructure/log.mailer.js';
+export { MemoryMailer } from './infrastructure/memory.mailer.js';
+export { NullMailer } from './infrastructure/null.mailer.js';
+export { SmtpMailer } from './infrastructure/smtp.mailer.js';
+export { passwordChangedMessage } from './templates/password-changed.template.js';
+export { resetPasswordMessage } from './templates/reset-password.template.js';
+export { verifyEmailMessage } from './templates/verify-email.template.js';

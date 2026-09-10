@@ -43,7 +43,7 @@ export const rolloutStrategyEnum = pgEnum('rollout_strategy', [
   'off',
   'on',
   'percentage',
-  'role',
+  'role_list',
   'user_list',
   'ip_list',
 ]);

@@ -74,6 +74,11 @@ export class RegisterUseCase {
 
     deps.logger.info('User registered.', { userId: user.id, ip: command.ip });
 
+    // Outside the transaction on purpose: the account exists and is usable, and
+    // a mail relay hiccup must not roll back a successful registration. If it
+    // fails, "resend verification" recovers it.
+    await deps.tokenIssuer.issueEmailVerification(user, command.ip);
+
     const permissions = await deps.repositories.roles.permissionsForUser(user.id);
 
     if (permissions.size === 0) {

@@ -1,9 +1,12 @@
-import type { Clock } from '@yume/core';
 import type { Config } from '@yume/config';
+import type { Clock } from '@yume/core';
 import type { Logger } from '@yume/logger';
-import type { PasswordHasher, PasswordPolicy, TokenGenerator } from '@yume/security';
+import type { CsrfTokenManager, PasswordHasher, PasswordPolicy, TokenGenerator } from '@yume/security';
 
+import type { Mailer } from '../../mail/domain/mailer.js';
 import type { Repositories, UnitOfWork } from '../../shared/repositories.js';
+import type { TokenIssuer } from './token-issuer.service.js';
+import type { TokenRedeemer } from './token-redeemer.service.js';
 
 /**
  * Everything the auth use cases need.
@@ -20,6 +23,10 @@ export interface AuthDependencies {
   readonly hasher: PasswordHasher;
   readonly passwordPolicy: PasswordPolicy;
   readonly tokenGenerator: TokenGenerator;
+  readonly csrf: CsrfTokenManager;
+  readonly tokenIssuer: TokenIssuer;
+  readonly tokenRedeemer: TokenRedeemer;
+  readonly mailer: Mailer;
   readonly clock: Clock;
   readonly logger: Logger;
   readonly config: Config;

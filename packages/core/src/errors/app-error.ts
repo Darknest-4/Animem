@@ -19,18 +19,20 @@ export abstract class AppError extends Error {
     this.details = Object.freeze({ ...details });
 
     // Without this the stack trace of a subclass points at this constructor.
-    Error.captureStackTrace?.(this, new.target);
+    // V8-only, and typed as always present, so the availability check is a
+    // runtime one for non-V8 runtimes rather than something the types express.
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, new.target);
+    }
   }
 
   /**
    * Whether the message is safe to show a caller.
    *
    * Subclasses describe rule violations the caller caused, so the default is
-   * yes. An error that could leak internals overrides it.
+   * yes. An error that could leak internals overrides it with its own field.
    */
-  get exposeMessage(): boolean {
-    return true;
-  }
+  readonly exposeMessage: boolean = true;
 }
 
 /** Type guard used by the error handler and by tests. */

@@ -6,7 +6,7 @@ CREATE TYPE "public"."media_type" AS ENUM('tv', 'movie', 'ova', 'ona', 'special'
 CREATE TYPE "public"."network_classification" AS ENUM('tor_exit', 'vpn', 'datacentre', 'residential');--> statement-breakpoint
 CREATE TYPE "public"."password_algorithm" AS ENUM('argon2id', 'legacy_sha256');--> statement-breakpoint
 CREATE TYPE "public"."release_kind" AS ENUM('sub', 'dub', 'raw');--> statement-breakpoint
-CREATE TYPE "public"."rollout_strategy" AS ENUM('off', 'on', 'percentage', 'role', 'user_list', 'ip_list');--> statement-breakpoint
+CREATE TYPE "public"."rollout_strategy" AS ENUM('off', 'on', 'percentage', 'role_list', 'user_list', 'ip_list');--> statement-breakpoint
 CREATE TYPE "public"."season" AS ENUM('winter', 'spring', 'summer', 'fall');--> statement-breakpoint
 CREATE TYPE "public"."severity" AS ENUM('info', 'notice', 'warning', 'critical');--> statement-breakpoint
 CREATE TYPE "public"."token_purpose" AS ENUM('email_verification', 'password_reset');--> statement-breakpoint

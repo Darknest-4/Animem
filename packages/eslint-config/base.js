@@ -26,6 +26,14 @@ export default tseslint.config(
       // Correctness
       '@typescript-eslint/no-floating-promises': 'error',
       '@typescript-eslint/no-misused-promises': 'error',
+      // Off deliberately. An `async` function with no `await` is usually
+      // contractual here, not an oversight: implementing a port whose other
+      // drivers do I/O (NullMailer.send), or a Fastify hook, whose signature is
+      // "return a promise, or take a done callback" — dropping `async` there
+      // silently changes which of those two Fastify thinks you meant, and the
+      // request hangs. The rules that catch real async mistakes, no-floating-
+      // promises and no-misused-promises, stay on above.
+      '@typescript-eslint/require-await': 'off',
       '@typescript-eslint/switch-exhaustiveness-check': 'error',
       '@typescript-eslint/consistent-type-imports': [
         'error',

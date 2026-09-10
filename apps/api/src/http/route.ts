@@ -1,5 +1,5 @@
 import type { FastifyReply, FastifyRequest, RouteHandlerMethod } from 'fastify';
-import type { ZodTypeAny } from 'zod';
+import type { z, ZodTypeAny } from 'zod';
 
 import type { Access } from './access.js';
 
@@ -25,13 +25,16 @@ export interface RouteSchema {
   readonly response?: Readonly<Record<number, ZodTypeAny>>;
 }
 
-export interface RouteDefinition {
-  readonly method: HttpMethod;
-  readonly url: string;
-  /** Required, so a route with no access rule cannot compile. */
+/**
+ * The policy attached to a route, as the request pipeline reads it.
+ *
+ * Carried on Fastify's per-route `config`, so every hook reads the same
+ * declaration the route author wrote — no parallel table of URLs to keep in
+ * sync, which is precisely how the legacy site ended up with an admin area
+ * whose protection lived in a commented-out .htaccess block.
+ */
+export interface RouteConfig {
   readonly access: Access;
-  readonly schema: RouteSchema;
-  readonly handler: RouteHandlerMethod;
   readonly rateLimit?: RateLimitPolicyName;
   /**
    * Skips CSRF verification.
@@ -45,20 +48,69 @@ export interface RouteDefinition {
   readonly featureFlag?: string;
 }
 
+type InferOr<TSchema, TFallback> = TSchema extends ZodTypeAny ? z.infer<TSchema> : TFallback;
+
+/** The request shape implied by a route's own schemas. */
+export interface RouteGeneric<TSchema extends RouteSchema> {
+  Body: InferOr<TSchema['body'], unknown>;
+  Params: InferOr<TSchema['params'], unknown>;
+  Querystring: InferOr<TSchema['querystring'], unknown>;
+}
+
+/**
+ * A handler whose request is typed by the route's schemas.
+ *
+ * This is what makes validation single-sourced: the schema validates the input
+ * *and* types it, so a handler never re-parses a body it was just handed. Two
+ * descriptions of one payload is how a handler ends up trusting a field the
+ * validator does not actually require.
+ */
+export type TypedHandler<TSchema extends RouteSchema> = (
+  request: FastifyRequest<RouteGeneric<TSchema>>,
+  reply: FastifyReply,
+) => Promise<unknown>;
+
+export interface RouteDefinition extends RouteConfig {
+  readonly method: HttpMethod;
+  readonly url: string;
+  /** Required, so a route with no access rule cannot compile. */
+  readonly access: Access;
+  readonly schema: RouteSchema;
+  readonly handler: RouteHandlerMethod;
+}
+
+export interface RouteInput<TSchema extends RouteSchema> extends RouteConfig {
+  readonly method: HttpMethod;
+  readonly url: string;
+  readonly schema: TSchema;
+  readonly handler: TypedHandler<TSchema>;
+}
+
 /**
  * Declares a route.
  *
- * A thin identity function, and that is the point: it exists so `access` is a
- * required property of every route object in the codebase, which turns
- * "somebody forgot the permission check" into a type error rather than an open
- * endpoint.
+ * Two jobs. It infers the handler's request type from the route's own schemas,
+ * and it makes `access` a required property of every route object in the
+ * codebase — so "somebody forgot the permission check" is a type error rather
+ * than an open endpoint.
+ *
+ * The cast is the one place a typed handler is widened to Fastify's untyped
+ * signature. Doing it here, once, is what keeps every route file free of casts:
+ * the alternative is each of them asserting its own body shape, which is the
+ * same unsound step performed sixty times instead of once, in sixty places
+ * nobody reviews as carefully as this line.
  */
-export function defineRoute(definition: RouteDefinition): RouteDefinition {
-  return definition;
+export function defineRoute<const TSchema extends RouteSchema>(
+  definition: RouteInput<TSchema>,
+): RouteDefinition {
+  return definition as unknown as RouteDefinition;
 }
 
-/** Convenience alias for handlers that need the typed request and reply. */
-export type Handler<TRequest extends FastifyRequest = FastifyRequest> = (
-  request: TRequest,
-  reply: FastifyReply,
-) => Promise<unknown>;
+declare module 'fastify' {
+  interface FastifyContextConfig {
+    access?: Access;
+    rateLimit?: RateLimitPolicyName;
+    csrfExempt?: boolean;
+    featureFlag?: string;
+  }
+}

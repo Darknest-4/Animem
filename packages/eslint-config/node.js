@@ -5,15 +5,23 @@ export default [
   ...base,
   {
     rules: {
-      'no-restricted-globals': [
+      // Aimed at `process.env` specifically, not at `process`. Banning the whole
+      // global would also rule out `process.uptime()` in a liveness probe and
+      // `process.stderr` in the crash path — neither of which is configuration,
+      // and both of which have no typed alternative.
+      'no-restricted-properties': [
         'error',
-        { name: 'process', message: 'Import the typed config from @yume/config instead of reading process.env.' },
+        {
+          object: 'process',
+          property: 'env',
+          message: 'Read configuration through @yume/config, which validates it, rather than process.env.',
+        },
       ],
     },
   },
   {
     // The config package is the one place allowed to read the environment.
-    files: ['**/config/**', '**/*.config.ts', '**/env.ts'],
-    rules: { 'no-restricted-globals': 'off' },
+    files: ['**/config/**', '**/*.config.ts', '**/env.ts', '**/scripts/**'],
+    rules: { 'no-restricted-properties': 'off' },
   },
 ];

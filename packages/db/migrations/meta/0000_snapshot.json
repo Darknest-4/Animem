@@ -1,5 +1,5 @@
 {
-  "id": "104ff13e-2594-4a7b-8f33-785a466f8b4c",
+  "id": "a82f9aff-baf7-4c83-bab3-68c4b9fa84df",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -2728,7 +2728,7 @@
         "off",
         "on",
         "percentage",
-        "role",
+        "role_list",
         "user_list",
         "ip_list"
       ]

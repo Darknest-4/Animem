@@ -1,3 +1,5 @@
+import type { FastifyRequest } from 'fastify';
+
 import type { Access } from './access.js';
 
 /**
@@ -30,6 +32,20 @@ export interface RequestContext {
   readonly clientIp: string;
   readonly userAgent: string;
   readonly startedAt: number;
+}
+
+/**
+ * The request id, when one has been established.
+ *
+ * `context` is declared non-optional because it is set by the first onRequest
+ * hook and is therefore always present in a handler — which is where every other
+ * reader lives. The error handler is the exception: it also runs for failures
+ * raised before that hook completes, and for the not-found path. This is the one
+ * place that acknowledges the gap, rather than every consumer defending against
+ * a value they cannot actually miss.
+ */
+export function requestIdOf(request: FastifyRequest): string | undefined {
+  return (request as Omit<FastifyRequest, 'context'> & { context?: RequestContext }).context?.requestId;
 }
 
 declare module 'fastify' {

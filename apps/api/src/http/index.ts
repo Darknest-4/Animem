@@ -5,4 +5,14 @@ export type { AuthContext, RequestContext } from './context.js';
 export { PROBLEM_CONTENT_TYPE, problem, problemHeaders, toProblem } from './problem.js';
 export type { ProblemDetails } from './problem.js';
 export { defineRoute } from './route.js';
-export type { Handler, HttpMethod, RateLimitPolicyName, RouteDefinition, RouteSchema } from './route.js';
+export type {
+  HttpMethod,
+  RateLimitPolicyName,
+  RouteConfig,
+  RouteDefinition,
+  RouteGeneric,
+  RouteInput,
+  RouteSchema,
+  TypedHandler,
+} from './route.js';
+export { registerRoutes } from './router.js';

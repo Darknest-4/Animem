@@ -66,7 +66,14 @@ export function matchesCidr(ip: string, range: string): boolean {
   const ipBytes = toBytes(ip);
   const subnetBytes = toBytes(subnet);
 
-  if (ipBytes === null || subnetBytes === null || ipBytes.length !== subnetBytes.length) {
+  if (subnetBytes === null) {
+    return false;
+  }
+
+  // Also rules out a null `ipBytes`, and rules out comparing an IPv4 address
+  // against an IPv6 block: four bytes never equals sixteen, so a v4 client can
+  // never match a v6 proxy range by accident.
+  if (ipBytes?.length !== subnetBytes.length) {
     return false;
   }
 

@@ -18,6 +18,9 @@ export const Guard = Object.freeze({
   },
 
   length(value: string, field: string, min: number, max: number): string {
+    // Counted in code points, not UTF-16 units, so a name written in an
+    // astral-plane script is not charged double for every character.
+    // eslint-disable-next-line @typescript-eslint/no-misused-spread -- code points are exactly the unit wanted here
     const length = [...value].length;
 
     if (length < min || length > max) {
@@ -45,7 +48,7 @@ export const Guard = Object.freeze({
       throw new ValidationError({ [field]: [`Must be one of: ${allowed.join(', ')}.`] });
     }
 
-    return value as T[number];
+    return value;
   },
 
   /** For invariants that should be impossible, not merely invalid input. */

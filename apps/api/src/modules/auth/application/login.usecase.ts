@@ -21,10 +21,9 @@ export interface LoginCommand {
 }
 
 export interface LoginResult {
-  readonly response: Omit<LoginResponse, 'session'> & {
-    readonly session: { readonly id: string; readonly expires_at: string };
-  };
-  readonly sessionId: string;
+  /** The response body, exactly as the contract declares it. */
+  readonly response: LoginResponse;
+  /** What the HTTP layer needs to set the cookie, which the body cannot describe. */
   readonly token: string;
   readonly expiresAt: Date;
 }
@@ -112,10 +111,16 @@ export class LoginUseCase {
     return {
       response: {
         user: toAuthenticatedUser(user, permissions.toArray()),
-        session: { id: session.id, expires_at: session.expiresAt.toISOString() },
+        session: {
+          id: session.id,
+          expires_at: session.expiresAt.toISOString(),
+          // Minted here rather than on a separate round trip, so the client has
+          // everything it needs to make its first write immediately after
+          // signing in.
+          csrf_token: deps.csrf.generate(session.id),
+        },
         token: token.plain,
       },
-      sessionId: session.id,
       token: token.plain,
       expiresAt: session.expiresAt,
     };

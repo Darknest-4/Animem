@@ -2,8 +2,13 @@ import { AppError } from './app-error.js';
 
 /** 400 — the request itself is malformed in a way schemas did not catch. */
 export class BadRequestError extends AppError {
-  readonly code = 'request.invalid';
+  readonly code: string;
   readonly status = 400;
+
+  constructor(message: string, code = 'request.invalid', details?: Record<string, unknown>) {
+    super(message, details);
+    this.code = code;
+  }
 }
 
 /** 401 — no identity, or an identity that no longer holds. */
@@ -33,12 +38,17 @@ export class NotFoundError extends AppError {
   readonly code: string;
   readonly status = 404;
 
+  /**
+   * @param resource A human-readable resource name, e.g. `feature flag`. The
+   * machine code is derived from it, so spaces are folded to underscores: a
+   * client matching on `code` should never have to handle `feature flag.not_found`.
+   */
   constructor(resource: string, identifier?: string) {
     super(
       identifier === undefined ? `No such ${resource}.` : `No ${resource} "${identifier}".`,
       identifier === undefined ? { resource } : { resource, identifier },
     );
-    this.code = `${resource}.not_found`;
+    this.code = `${resource.trim().toLowerCase().replace(/\s+/gu, '_')}.not_found`;
   }
 }
 
@@ -100,8 +110,6 @@ export class ServiceUnavailableError extends AppError {
   readonly code = 'service.unavailable';
   readonly status = 503;
 
-  override get exposeMessage(): boolean {
-    // "postgres refused the connection" is operational detail, not caller detail.
-    return false;
-  }
+  // "postgres refused the connection" is operational detail, not caller detail.
+  override readonly exposeMessage = false;
 }

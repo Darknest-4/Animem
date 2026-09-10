@@ -137,6 +137,12 @@ final class Route
     /**
      * Turns `/api/v1/users/{id}` into an anchored regex plus its parameter names.
      *
+     * The constraint may itself contain braces — `{id:[0-9a-f-]{36}}` is the
+     * common case — so the inner `{n}` / `{n,m}` quantifiers are matched
+     * explicitly. A naive `[^}]+` stops at the first closing brace and silently
+     * produces `([0-9a-f-]{36)}`, a regex that compiles but matches nothing:
+     * the route then 404s for every request.
+     *
      * @return array{0: string, 1: list<string>}
      */
     private static function compilePattern(string $pattern): array
@@ -144,16 +150,33 @@ final class Route
         $names = [];
 
         $regex = preg_replace_callback(
-            '/\{([a-zA-Z_][a-zA-Z0-9_]*)(?::([^}]+))?\}/',
+            '/\{([a-zA-Z_][a-zA-Z0-9_]*)(?::((?:[^{}]|\{\d+(?:,\d*)?\})+))?\}/',
             static function (array $matches) use (&$names): string {
                 $names[] = $matches[1];
-                $constraint = $matches[2] ?? '[^/]+';
+                $constraint = ($matches[2] ?? '') !== '' ? $matches[2] : '[^/]+';
 
-                return '(' . $constraint . ')';
+                // Non-capturing wrapper so a group inside the constraint cannot
+                // shift the positional mapping between names and captures.
+                return '(?:(' . $constraint . '))';
             },
             $pattern,
         );
 
-        return ['#^' . $regex . '$#', $names];
+        if ($regex === null) {
+            throw new \LogicException(sprintf('Route pattern "%s" could not be compiled.', $pattern));
+        }
+
+        $compiled = '#^' . $regex . '$#';
+
+        // Fail at boot rather than 404ing in production.
+        if (@preg_match($compiled, '') === false) {
+            throw new \LogicException(sprintf(
+                'Route pattern "%s" compiled to an invalid regex: %s',
+                $pattern,
+                $compiled,
+            ));
+        }
+
+        return [$compiled, $names];
     }
 }

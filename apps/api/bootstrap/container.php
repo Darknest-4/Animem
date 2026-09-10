@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Yume\Api\Application\Feature\FeatureFlagResolver;
 use Yume\Api\Domain\Auth\Repository\CredentialRepositoryInterface;
+use Yume\Api\Domain\Auth\Repository\OneTimeTokenRepositoryInterface;
 use Yume\Api\Domain\Auth\Repository\SessionRepositoryInterface;
 use Yume\Api\Domain\Auth\Service\PasswordPolicy;
 use Yume\Api\Domain\Auth\Service\SessionPolicy;
@@ -24,7 +25,11 @@ use Yume\Api\Infrastructure\Cache\ApcuCache;
 use Yume\Api\Infrastructure\Persistence\Repository\PdoBanRepository;
 use Yume\Api\Infrastructure\Persistence\Repository\PdoCredentialRepository;
 use Yume\Api\Infrastructure\Persistence\Repository\PdoFeatureFlagRepository;
+use Yume\Api\Infrastructure\Mail\LogMailer;
+use Yume\Api\Infrastructure\Mail\NullMailer;
+use Yume\Api\Infrastructure\Mail\SmtpMailer;
 use Yume\Api\Infrastructure\Persistence\Repository\PdoNetworkReputationRepository;
+use Yume\Api\Infrastructure\Persistence\Repository\PdoOneTimeTokenRepository;
 use Yume\Api\Infrastructure\Persistence\Repository\PdoRoleRepository;
 use Yume\Api\Infrastructure\Persistence\Repository\PdoSecurityAuditRepository;
 use Yume\Api\Infrastructure\Persistence\Repository\PdoSessionRepository;
@@ -42,6 +47,7 @@ use Yume\Contracts\Clock\ClockInterface;
 use Yume\Contracts\Feature\FeatureFlagsInterface;
 use Yume\Contracts\Identity\IdGeneratorInterface;
 use Yume\Contracts\Logging\LoggerInterface;
+use Yume\Contracts\Mail\MailerInterface;
 use Yume\Contracts\Persistence\ConnectionInterface;
 use Yume\Contracts\Queue\QueueInterface;
 use Yume\Database\Connection;
@@ -111,6 +117,7 @@ return static function (Container $container, Config $config): void {
     $container->bind(SecurityAuditRepositoryInterface::class, PdoSecurityAuditRepository::class);
     $container->bind(NetworkReputationRepositoryInterface::class, PdoNetworkReputationRepository::class);
     $container->bind(RateLimiterInterface::class, PdoRateLimiter::class);
+    $container->bind(OneTimeTokenRepositoryInterface::class, PdoOneTimeTokenRepository::class);
 
     $container->singleton(QueueInterface::class, static fn (Container $c): QueueInterface => new PdoQueue(
         $c->get(ConnectionInterface::class),
@@ -119,6 +126,25 @@ return static function (Container $container, Config $config): void {
         $config->string('queue.name', 'default'),
         $config->int('queue.max_attempts', 5),
     ));
+
+    // --------------------------------------------------------------------- mail
+    // 'log' is the default: registration must not fail because SMTP is not
+    // configured yet, and a developer needs to see the verification link.
+    $container->singleton(MailerInterface::class, static fn (Container $c): MailerInterface => match ($config->string('services.mail.driver', 'log')) {
+        'smtp' => new SmtpMailer(
+            $c->get(LoggerInterface::class),
+            $config->string('services.mail.host', 'mailpit'),
+            $config->int('services.mail.port', 1025),
+            $config->string('services.mail.from', 'noreply@yume.local'),
+            $config->string('services.mail.username') ?: null,
+            $config->string('services.mail.password') ?: null,
+        ),
+        'null' => new NullMailer(),
+        default => new LogMailer(
+            $c->get(LoggerInterface::class),
+            $config->string('services.mail.from', 'noreply@yume.local'),
+        ),
+    });
 
     // ----------------------------------------------------------------- security
     $container->singleton(PasswordHasher::class, static fn (): PasswordHasher => new PasswordHasher(

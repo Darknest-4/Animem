@@ -75,7 +75,8 @@ final class RouteAccessDeclarationTest extends TestCase
             $isCredentialEndpoint = $route->method === 'POST'
                 && (str_contains($route->pattern, '/auth/login')
                     || str_contains($route->pattern, '/auth/register')
-                    || str_contains($route->pattern, '/auth/password'));
+                    || str_contains($route->pattern, '/auth/password')
+                    || str_contains($route->pattern, '/auth/email'));
 
             if ($isCredentialEndpoint && $route->rateLimitPolicy() === null) {
                 $unlimited[] = $route->pattern;
@@ -91,7 +92,17 @@ final class RouteAccessDeclarationTest extends TestCase
      */
     public function testCsrfExemptionsAreLimitedToPreSessionEndpoints(): void
     {
-        $allowed = ['/api/v1/auth/login', '/api/v1/auth/register'];
+        // Each of these authenticates the caller by something they were mailed
+        // or typed, not by a cookie the browser attaches automatically, so a
+        // cross-site form post cannot ride an existing session into them.
+        $allowed = [
+            '/api/v1/auth/login',
+            '/api/v1/auth/register',
+            '/api/v1/auth/email/verify',
+            '/api/v1/auth/email/resend',
+            '/api/v1/auth/password/forgot',
+            '/api/v1/auth/password/reset',
+        ];
 
         foreach ($this->applicationRouter()->routes() as $route) {
             if ($route->isCsrfExempt()) {
@@ -105,9 +116,13 @@ final class RouteAccessDeclarationTest extends TestCase
         $expected = [
             'GET /health',
             'GET /health/ready',
+            'GET /api/v1/features',
             'POST /api/v1/auth/register',
             'POST /api/v1/auth/login',
-            'GET /api/v1/features',
+            'POST /api/v1/auth/email/verify',
+            'POST /api/v1/auth/email/resend',
+            'POST /api/v1/auth/password/forgot',
+            'POST /api/v1/auth/password/reset',
         ];
 
         $actual = [];

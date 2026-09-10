@@ -24,6 +24,14 @@ interface RoleRepositoryInterface
     /** @return list<string> role slugs */
     public function roleSlugsForUser(UserId $userId): array;
 
+    /**
+     * How many accounts hold this role.
+     *
+     * Used to refuse revoking the last admin, which would leave the installation
+     * with no way back into its own admin tools.
+     */
+    public function countUsersWithRole(string $roleSlug): int;
+
     public function assignRole(UserId $userId, string $roleSlug, ?UserId $grantedBy = null): void;
 
     public function revokeRole(UserId $userId, string $roleSlug): void;

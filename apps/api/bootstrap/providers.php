@@ -2,21 +2,33 @@
 
 declare(strict_types=1);
 
+use Yume\Api\Application\Auth\Command\ChangePasswordCommand;
 use Yume\Api\Application\Auth\Command\LoginCommand;
 use Yume\Api\Application\Auth\Command\LogoutCommand;
 use Yume\Api\Application\Auth\Command\RegisterCommand;
+use Yume\Api\Application\Auth\Command\RequestPasswordResetCommand;
+use Yume\Api\Application\Auth\Command\ResendVerificationCommand;
+use Yume\Api\Application\Auth\Command\ResetPasswordCommand;
 use Yume\Api\Application\Auth\Command\RevokeSessionCommand;
+use Yume\Api\Application\Auth\Command\VerifyEmailCommand;
+use Yume\Api\Application\Auth\Handler\ChangePasswordHandler;
 use Yume\Api\Application\Auth\Handler\GetCurrentUserHandler;
 use Yume\Api\Application\Auth\Handler\GetSessionsHandler;
 use Yume\Api\Application\Auth\Handler\LoginHandler;
 use Yume\Api\Application\Auth\Handler\LogoutHandler;
 use Yume\Api\Application\Auth\Handler\RegisterHandler;
+use Yume\Api\Application\Auth\Handler\RequestPasswordResetHandler;
+use Yume\Api\Application\Auth\Handler\ResendVerificationHandler;
+use Yume\Api\Application\Auth\Handler\ResetPasswordHandler;
 use Yume\Api\Application\Auth\Handler\RevokeSessionHandler;
+use Yume\Api\Application\Auth\Handler\VerifyEmailHandler;
 use Yume\Api\Application\Auth\Query\GetCurrentUserQuery;
 use Yume\Api\Application\Auth\Query\GetSessionsQuery;
 use Yume\Api\Application\Feature\Handler\ListFeatureFlagsHandler;
 use Yume\Api\Application\Feature\Query\ListFeatureFlagsQuery;
+use Yume\Api\Application\Auth\Service\TokenIssuer;
 use Yume\Api\Domain\Auth\Repository\CredentialRepositoryInterface;
+use Yume\Api\Domain\Auth\Repository\OneTimeTokenRepositoryInterface;
 use Yume\Api\Domain\Auth\Repository\SessionRepositoryInterface;
 use Yume\Api\Domain\Auth\Service\PasswordPolicy;
 use Yume\Api\Domain\Auth\Service\SessionPolicy;
@@ -39,6 +51,8 @@ use Yume\Contracts\Bus\CommandBusInterface;
 use Yume\Contracts\Bus\QueryBusInterface;
 use Yume\Contracts\Clock\ClockInterface;
 use Yume\Contracts\Identity\IdGeneratorInterface;
+use Yume\Contracts\Logging\LoggerInterface;
+use Yume\Contracts\Mail\MailerInterface;
 use Yume\Contracts\Persistence\ConnectionInterface;
 use Yume\Shared\Bus\CommandBus;
 use Yume\Shared\Bus\QueryBus;
@@ -85,12 +99,27 @@ return static function (Container $container, Config $config): void {
         $config->int('security.password.lock_seconds', 900),
     ));
 
+    $container->singleton(TokenIssuer::class, static fn (Container $c): TokenIssuer => new TokenIssuer(
+        $c->get(OneTimeTokenRepositoryInterface::class),
+        $c->get(TokenGenerator::class),
+        $c->get(MailerInterface::class),
+        $c->get(IdGeneratorInterface::class),
+        $c->get(ClockInterface::class),
+        $c->get(LoggerInterface::class),
+        $config->string('app.url', 'http://localhost:8080'),
+    ));
+
     // ---------------------------------------------------------------- bus maps
     $container->singleton(CommandBusInterface::class, static fn (Container $c): CommandBusInterface => new CommandBus($c, [
         RegisterCommand::class => RegisterHandler::class,
         LoginCommand::class => LoginHandler::class,
         LogoutCommand::class => LogoutHandler::class,
         RevokeSessionCommand::class => RevokeSessionHandler::class,
+        VerifyEmailCommand::class => VerifyEmailHandler::class,
+        ResendVerificationCommand::class => ResendVerificationHandler::class,
+        RequestPasswordResetCommand::class => RequestPasswordResetHandler::class,
+        ResetPasswordCommand::class => ResetPasswordHandler::class,
+        ChangePasswordCommand::class => ChangePasswordHandler::class,
     ]));
 
     $container->singleton(QueryBusInterface::class, static fn (Container $c): QueryBusInterface => new QueryBus($c, [

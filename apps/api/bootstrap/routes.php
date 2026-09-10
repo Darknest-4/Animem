@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+use Yume\Api\Presentation\Http\Controller\AdminFeatureController;
+use Yume\Api\Presentation\Http\Controller\AdminRoleController;
+use Yume\Api\Presentation\Http\Controller\AdminSecurityController;
 use Yume\Api\Presentation\Http\Controller\AdminUserController;
 use Yume\Api\Presentation\Http\Controller\AuthController;
 use Yume\Api\Presentation\Http\Controller\FeatureController;
@@ -47,6 +50,36 @@ return static function (Router $router): void {
     $router->get($v1 . '/auth/me', [AuthController::class, 'me'], 'auth.me')
         ->authenticated();
 
+    // --------------------------------------------------- email and password
+    // All four are pre-session: the caller holds a mailed token, not a cookie,
+    // so there is nothing to bind a CSRF token to.
+    $router->post($v1 . '/auth/email/verify', [AuthController::class, 'verifyEmail'], 'auth.email.verify')
+        ->public()
+        ->rateLimit('auth.token_redeem')
+        ->withoutCsrf();
+
+    // The handler applies the stricter, subnet-keyed auth.email_dispatch budget
+    // on top; this one only stops hammering from a single address.
+    $router->post($v1 . '/auth/email/resend', [AuthController::class, 'resendVerification'], 'auth.email.resend')
+        ->public()
+        ->rateLimit('auth.token_redeem')
+        ->withoutCsrf();
+
+    $router->post($v1 . '/auth/password/forgot', [AuthController::class, 'forgotPassword'], 'auth.password.forgot')
+        ->public()
+        ->rateLimit('auth.token_redeem')
+        ->withoutCsrf();
+
+    $router->post($v1 . '/auth/password/reset', [AuthController::class, 'resetPassword'], 'auth.password.reset')
+        ->public()
+        ->rateLimit('auth.token_redeem')
+        ->withoutCsrf();
+
+    // Signed in, and still requires the current password.
+    $router->post($v1 . '/auth/password/change', [AuthController::class, 'changePassword'], 'auth.password.change')
+        ->authenticated()
+        ->rateLimit('auth.password_change');
+
     // ---------------------------------------------------------------- sessions
     $router->get($v1 . '/auth/sessions', [SessionController::class, 'index'], 'sessions.index')
         ->authenticated();
@@ -69,4 +102,59 @@ return static function (Router $router): void {
     // ------------------------------------------------------------------- admin
     $router->get($v1 . '/admin/users', [AdminUserController::class, 'index'], 'admin.users.index')
         ->can('admin.access', 'user.view');
+
+    // Roles. Reading the catalogue is separate from changing who holds what.
+    $router->get($v1 . '/admin/roles', [AdminRoleController::class, 'index'], 'admin.roles.index')
+        ->can('admin.access', 'role.view');
+
+    $router->post(
+        $v1 . '/admin/users/{id:[0-9a-fA-F-]{36}}/roles',
+        [AdminRoleController::class, 'grant'],
+        'admin.roles.grant',
+    )->can('admin.access', 'role.manage');
+
+    $router->delete(
+        $v1 . '/admin/users/{id:[0-9a-fA-F-]{36}}/roles/{role:[a-z][a-z0-9_]*}',
+        [AdminRoleController::class, 'revoke'],
+        'admin.roles.revoke',
+    )->can('admin.access', 'role.manage');
+
+    // Feature flags: the whole point is changing these without a deploy.
+    $router->get($v1 . '/admin/features', [AdminFeatureController::class, 'index'], 'admin.features.index')
+        ->can('admin.access', 'feature_flag.view');
+
+    $router->get(
+        $v1 . '/admin/features/{key:[a-z][a-z0-9_]*}/history',
+        [AdminFeatureController::class, 'history'],
+        'admin.features.history',
+    )->can('admin.access', 'feature_flag.view');
+
+    $router->patch(
+        $v1 . '/admin/features/{key:[a-z][a-z0-9_]*}',
+        [AdminFeatureController::class, 'update'],
+        'admin.features.update',
+    )->can('admin.access', 'feature_flag.manage');
+
+    // Security: reading the audit trail is a moderator-grade permission,
+    // applying a ban is not.
+    $router->get($v1 . '/admin/security/events', [AdminSecurityController::class, 'events'], 'admin.security.events')
+        ->can('admin.access', 'security.view');
+
+    $router->get(
+        $v1 . '/admin/security/users/{id:[0-9a-fA-F-]{36}}/events',
+        [AdminSecurityController::class, 'userEvents'],
+        'admin.security.user_events',
+    )->can('admin.access', 'security.view');
+
+    $router->get($v1 . '/admin/security/bans', [AdminSecurityController::class, 'listBans'], 'admin.security.bans.index')
+        ->can('admin.access', 'security.view');
+
+    $router->post($v1 . '/admin/security/bans', [AdminSecurityController::class, 'createBan'], 'admin.security.bans.create')
+        ->can('admin.access', 'security.manage');
+
+    $router->delete(
+        $v1 . '/admin/security/bans/{id:[0-9a-fA-F-]{36}}',
+        [AdminSecurityController::class, 'liftBan'],
+        'admin.security.bans.lift',
+    )->can('admin.access', 'security.manage');
 };

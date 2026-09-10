@@ -104,6 +104,18 @@ final class PdoRoleRepository implements RoleRepositoryInterface
         return array_map(static fn (array $row): string => (string) $row['slug'], $rows);
     }
 
+    public function countUsersWithRole(string $roleSlug): int
+    {
+        return (int) $this->connection->scalar(
+            <<<'SQL'
+            SELECT count(*)
+            FROM user_roles ur JOIN roles r ON r.id = ur.role_id
+            WHERE r.slug = :slug
+            SQL,
+            ['slug' => $roleSlug],
+        );
+    }
+
     public function assignRole(UserId $userId, string $roleSlug, ?UserId $grantedBy = null): void
     {
         $affected = $this->connection->execute(

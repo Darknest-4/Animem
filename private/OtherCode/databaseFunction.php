@@ -9,8 +9,15 @@ class Database {
       if ($db_name === null) {
           $db_name = "default";
       }
-      $db_config = json_decode(file_get_contents(FOLDER_CONFIG . "dbconfig.json"), true)[$db_name];
-      $this->connection = new PDO("mysql:host={$db_config['host']};dbname={$db_config['dbname']}", $db_config['username'], $db_config['password']);
+      // Credentials come from the environment; dbconfig.json is a fallback.
+      require_once dirname(__DIR__, 2) . '/Config/credentials.php';
+      $db_config = animem_db_credentials(FOLDER_CONFIG . "dbconfig.json", $db_name);
+      $this->connection = new PDO(
+          "mysql:host={$db_config['host']};dbname={$db_config['database']};charset=utf8mb4",
+          $db_config['username'],
+          $db_config['password'],
+          [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_EMULATE_PREPARES => false]
+      );
   }
 
   public static function getInstance($db_name = null) {

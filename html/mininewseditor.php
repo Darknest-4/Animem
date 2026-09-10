@@ -1,7 +1,6 @@
 <?php
 //$servername = "localhost";
 //$username = "rlight";
-//$password = "nF79Fn3FuMZGK7kMK3MydU9cBKk9eVZe";
 //$database = "animem";
 
 require_once("../Config/loadConfig.php");

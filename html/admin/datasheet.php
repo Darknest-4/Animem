@@ -39,7 +39,6 @@ $footer = '
 
 //$servername = "localhost";
 //$username = "rlight";
-//$password = "nF79Fn3FuMZGK7kMK3MydU9cBKk9eVZe";
 //$database = "animem";
 
 require_once("../../Config/loadConfig.php");
@@ -936,7 +935,6 @@ function print_p($p = '')
 }
 function RealEscapeString($dbConfig, $string = "")
 {
-  //$conn = new mysqli("localhost", "rlight", "nF79Fn3FuMZGK7kMK3MydU9cBKk9eVZe", "animem");
   $conn = new mysqli($dbConfig['host'], $dbConfig['username'], $dbConfig['password'], $dbConfig['database']);
   if ($conn->connect_error) die("Connection failed: " . $conn->connect_error);
 
@@ -945,7 +943,6 @@ function RealEscapeString($dbConfig, $string = "")
 }
 function Update2($dbConfig, $sql = "")
 {
-  //$conn = new mysqli("localhost", "rlight", "nF79Fn3FuMZGK7kMK3MydU9cBKk9eVZe", "animem");
   $conn = new mysqli($dbConfig['host'], $dbConfig['username'], $dbConfig['password'], $dbConfig['database']);
   if ($conn->connect_error) die("Connection failed: " . $conn->connect_error);
   if ($conn->query($sql) === TRUE)
@@ -959,7 +956,6 @@ function Update2($dbConfig, $sql = "")
 }
 function Select2($dbConfig, $sql = "")
 {
-  //$conn = new mysqli("localhost", "rlight", "nF79Fn3FuMZGK7kMK3MydU9cBKk9eVZe", "animem");
   $conn = new mysqli($dbConfig['host'], $dbConfig['username'], $dbConfig['password'], $dbConfig['database']);
   if ($conn->connect_error) die("Connection failed: " . $conn->connect_error);
 
@@ -983,7 +979,6 @@ function Select2($dbConfig, $sql = "")
 }
 function Insert2($dbConfig, $sql = "", $id = FALSE)
 {
-  //$conn = new mysqli("localhost", "rlight", "nF79Fn3FuMZGK7kMK3MydU9cBKk9eVZe", "animem");
   $conn = new mysqli($dbConfig['host'], $dbConfig['username'], $dbConfig['password'], $dbConfig['database']);
   if ($conn->connect_error) die("Connection failed: " . $conn->connect_error);
   if ($conn->query($sql) === TRUE)

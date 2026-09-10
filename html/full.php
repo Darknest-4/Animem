@@ -1,10 +1,13 @@
 <?php
 
 ini_set('display_errors', '1');
-$servername = "localhost";
-$username = "animem";
-$password = "OV3SY1WCZyew6sZEDFu4D5ClzHAeHj8U0O4X2SPwwmy4KdnPn1Z81PLzesUhu4Ud";
-$database = "animem";
+// Credentials come from the environment (see Config/credentials.php).
+require_once dirname(__DIR__) . '/Config/credentials.php';
+$primary    = animem_db_credentials(dirname(__DIR__) . '/Config/config.json');
+$servername = $primary['host'];
+$username   = $primary['username'];
+$password   = $primary['password'];
+$database   = $primary['database'];
 
 // Create connection
 $conn = new mysqli($servername, $username, $password, $database);

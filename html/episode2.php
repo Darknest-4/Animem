@@ -25,7 +25,6 @@ $footer = '
 
 //$servername = "localhost";
 //$username = "rlight";
-//$password = "nF79Fn3FuMZGK7kMK3MydU9cBKk9eVZe";
 //$database = "animem";
 $database3 = "xanimem";
 

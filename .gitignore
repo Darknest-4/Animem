@@ -4,6 +4,16 @@
 .env.*
 !.env.example
 
+# Legacy site credentials. These are read only as a fallback when the
+# ANIMEM_DB_* environment variables are not set (see Config/credentials.php).
+# They were tracked with the production password in them until they were removed.
+Config/config.json
+Config/database.json
+private/Config/dbconfig.json
+html/uploaders/Config/database.json
+html/admin/htpasswd/
+html/**/htpasswd/
+
 # Dependencies
 /vendor/
 **/vendor/

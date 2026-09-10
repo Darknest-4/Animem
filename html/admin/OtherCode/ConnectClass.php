@@ -30,8 +30,9 @@ class Connect
    */
   private static function initConnection()
   {
-    $config = fGetCon("../Config/database.json");
-    $config = json_decode($config, true);
+    // Credentials come from the environment; the old JSON file is a fallback.
+    require_once dirname(__DIR__, 3) . '/Config/credentials.php';
+    $config = animem_db_credentials(dirname(__DIR__, 3) . '/Config/database.json');
     $db = self::getInstance();
     $db->conn = new mysqli($config['host'], $config['username'], $config['password'], $config['database']);
     $db->conn->set_charset('utf8');

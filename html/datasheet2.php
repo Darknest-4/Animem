@@ -148,13 +148,18 @@ $footer = '
 ';
 $header2 = file_get_contents("template/header.phtml");
 
-$servername = "localhost";
-$username = "animem";
-$password = "OV3SY1WCZyew6sZEDFu4D5ClzHAeHj8U0O4X2SPwwmy4KdnPn1Z81PLzesUhu4Ud";
-$database = "animem";
-$username3 = "xanimem";
-$password3 = "ZfsCfn8gx9jMhxfcJcMRrpLiZm6wKjGwAqY2rKKoJ0YOKjnAly56RzUU8U6qSXGV";
-$database3 = "xanimem";
+// Credentials come from the environment (see Config/credentials.php); they used
+// to be hardcoded here, which put two production passwords in version control.
+require_once dirname(__DIR__) . '/Config/credentials.php';
+$primary   = animem_db_credentials(dirname(__DIR__) . '/Config/config.json');
+$secondary = animem_db2_credentials();
+$servername = $primary['host'];
+$username   = $primary['username'];
+$password   = $primary['password'];
+$database   = $primary['database'];
+$username3  = $secondary['username'];
+$password3  = $secondary['password'];
+$database3  = $secondary['database'];
 
 
 

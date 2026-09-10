@@ -9,7 +9,6 @@ $token = "4d97675dfd7e70a0263575b74cdd3ca7c0d5dccb74e3f8211456747f439a3cc3";
 
 //$servername = "localhost";
 //$username = "rlight";
-//$password = "nF79Fn3FuMZGK7kMK3MydU9cBKk9eVZe";
 //$database = "animem";
 $database3 = "xanimem";
 
